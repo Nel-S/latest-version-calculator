@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<link rel="stylesheet" type="text/css" href="/reset.css">
+	<!-- <link rel="icon" type="image/svg+xml" href="/favicon.svg" /> -->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Latest Minecraft Version Calculator</title>
+</head>
+<body>
+
+	<noscript>
+		<span>
+			<p>This page requires JavaScript to function.</p>
+			<p>As an alternative, you can browse the Minecraft Wiki's articles regarding the <a href="https://minecraft.wiki/w/Java_Edition_version_history">Java Edition version history</a>, <a href="https://minecraft.wiki/w/Bedrock_Edition_version_history">Bedrock Edition version history</a>, etc.</p>
+		</span>
+	</noscript>
+
+	<span class="Title">
+		<h1>Latest Minecraft Version Calculator</h1>
+	</span>
+
+	<span>
+		<label for="platform-form">Platform:</label>
+		<select id="platform-form">
+			<option>Java</option>
+		</select>
+		<label for="datetime-form">Date:</label>
+		<input type="datetime-local" id="datetime-form" onclick="this.showPicker()">
+		<span>
+			<label for="utc-offset-form">UTC Offset:</label>
+			<input type="range" min="-12" max="14" step="0.25" id="utc-offset-form">
+			<p id="current-utc-offset"></p>
+		</span>
+	</span>
+
+	<span>
+		<p id="latest-release"></p>
+		<p id="latest-snapshot"></p>
+	</span>
+
+	<script type="module" src="/src/main.ts"></script>
+</body>
+</html>
