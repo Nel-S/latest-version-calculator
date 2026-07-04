@@ -10,7 +10,7 @@ export class Entry {
     }
 };
 
-export function validateNodeList(list: Entry[]) {
+export function validateNodeList(list: Entry[]): void {
     for (let i = 0; i < list.length; ++i) {
         if (i < list.length - 1 && list[i].timestamp >= list[i + 1].timestamp) throw new Error(`List entries are out of order chronlogically (indices ${i}-${i + 1}).`);
     }
