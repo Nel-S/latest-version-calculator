@@ -1,5 +1,5 @@
 import {getElementOrNull, getElementOrThrow} from "./util.js"
-import {Entry, getLatestVersions} from "./version-lists/helpers.js";
+import {Entry, getLatestVersions, validateNodeList} from "./version-lists/helpers.js";
 import {JAVA_VERSIONS} from "./version-lists/java.js"
 
 
@@ -48,7 +48,9 @@ function getListFromForm(): Entry[] | null {
 	if (!platformForm) return null;
 	
 	switch (platformForm.value) {
-		case "Java": return JAVA_VERSIONS;
+		case "Java":
+			validateNodeList(JAVA_VERSIONS);
+			return JAVA_VERSIONS;
 		default: return null;
 	}
 }
@@ -74,10 +76,10 @@ function recalculate(): void {
 	
 	const {releaseEntry, snapshotEntry} = getLatestVersions(JAVA_VERSIONS, datetime);
 	releaseOutput.innerHTML = releaseEntry ?
-		`Latest release: ${releaseEntry.name} (released approximately around ${releaseEntry.timestamp.toUTCString()})` :
+		`Latest release: ${releaseEntry.name} (released around ${releaseEntry.timestamp.toISOString().slice(0, 16).replace("T", " ")} UTC)` :
 		`Latest release: [No releases existed for the provided platform on this date.]`;
 	snapshotOutput.innerHTML = snapshotEntry ?
-		`Latest snapshot: ${snapshotEntry.name} (released approximately around ${snapshotEntry.timestamp.toUTCString()})` :
+		`Latest snapshot: ${snapshotEntry.name} (released around ${snapshotEntry.timestamp.toISOString().slice(0, 16).replace("T", " ")} UTC)` :
 		`Latest snapshot: [No snapshots existed for the provided platform on this date.]`;
 }
 
