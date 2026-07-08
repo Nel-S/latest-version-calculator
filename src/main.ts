@@ -57,30 +57,42 @@ function getListFromForm(): Entry[] | null {
 
 function recalculate(): void {
 	const releaseOutput = getElementOrThrow("#latest-release");
+	const releaseTimeOutput = getElementOrThrow("#latest-release-time");
 	const snapshotOutput = getElementOrThrow("#latest-snapshot");
+	const snapshotTimeOutput = getElementOrThrow("#latest-snapshot-time");
 
 	const list = getListFromForm();
 	if (!list) {
-		releaseOutput.innerHTML = `Latest release: [Invalid platform provided.]`;
-		snapshotOutput.innerHTML = `Latest snapshot: [Invalid platform provided.]`;
+		releaseOutput.innerHTML = `[Invalid platform provided.]`;
+		releaseTimeOutput.innerHTML = "";
+		snapshotOutput.innerHTML = `[Invalid platform provided.]`;
+		snapshotTimeOutput.innerHTML = "";
 		return;
 	}
 
 	const datetime = getDatetimeFromForm();
 	if (!datetime || isNaN(datetime.getTime())) {
-		releaseOutput.innerHTML = `Latest release: [Invalid date/time provided.]`;
-		snapshotOutput.innerHTML = `Latest snapshot: [Invalid date/time provided.]`;
+		releaseOutput.innerHTML = `[Invalid date/time provided.]`;
+		releaseTimeOutput.innerHTML = "";
+		snapshotOutput.innerHTML = `[Invalid date/time provided.]`;
+		snapshotTimeOutput.innerHTML = "";
 		return;
 	}
 	// console.log(datetime.toISOString());
 	
 	const {releaseEntry, snapshotEntry} = getLatestVersions(JAVA_VERSIONS, datetime);
 	releaseOutput.innerHTML = releaseEntry ?
-		`Latest release: ${releaseEntry.name} (released around ${releaseEntry.timestamp.toISOString().slice(0, 16).replace("T", " ")} UTC)` :
-		`Latest release: [No releases existed for the provided platform on this date.]`;
+		`${releaseEntry.name}` :
+		`[No releases existed for the provided platform on this date.]`;
+	releaseTimeOutput.innerHTML = releaseEntry ?
+		`(around ${releaseEntry.timestamp.toISOString().slice(0, 16).replace("T", " ")} UTC)` :
+		"";
 	snapshotOutput.innerHTML = snapshotEntry ?
-		`Latest snapshot: ${snapshotEntry.name} (released around ${snapshotEntry.timestamp.toISOString().slice(0, 16).replace("T", " ")} UTC)` :
-		`Latest snapshot: [No snapshots existed for the provided platform on this date.]`;
+		`${snapshotEntry.name}` :
+		`[No snapshots existed for the provided platform on this date.]`;
+	snapshotTimeOutput.innerHTML = snapshotEntry ?
+		`(around ${snapshotEntry.timestamp.toISOString().slice(0, 16).replace("T", " ")} UTC)` :
+		"";
 }
 
 window.addEventListener("DOMContentLoaded", initialize);

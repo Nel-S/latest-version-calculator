@@ -1,6 +1,7 @@
 import {Entry} from "./helpers.js"
 
 export const JAVA_VERSIONS: Entry[] = [
+	new Entry("26.3 Snapshot 3", new Date("2026-07-07T13:58Z"), true),
 	new Entry("26.3 Snapshot 2", new Date("2026-06-30T13:58Z"), true),
 	new Entry("26.3 Snapshot 1", new Date("2026-06-23T14:00Z"), true),
 	new Entry("26.2", new Date("2026-06-16T15:04Z")),

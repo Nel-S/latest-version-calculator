@@ -32,7 +32,7 @@ export function getLatestVersions(list: Entry[], date: Date) : {releaseEntry: En
     // While there's still a range of indices to check:
     while (latestIndex <= earliestIndex) {
         // Get (approximate) middle index
-        let middleIndex = Math.floor((latestIndex + earliestIndex)/2);
+        const middleIndex = Math.floor((latestIndex + earliestIndex)/2);
         // console.log([latestIndex, earliestIndex, middleIndex]);
         // If not (date >= list[i]), we can discard entries 0-i
         if (date < list[middleIndex].timestamp) {

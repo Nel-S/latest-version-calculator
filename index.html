@@ -3,6 +3,7 @@
 <head>
 	<meta charset="UTF-8" />
 	<link rel="stylesheet" type="text/css" href="/reset.css">
+	<link rel="stylesheet" type="text/css" href="/style.css">
 	<!-- <link rel="icon" type="image/svg+xml" href="/favicon.svg" /> -->
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<title>Latest Minecraft Version Calculator</title>
@@ -16,27 +17,45 @@
 		</span>
 	</noscript>
 
-	<span class="Title">
-		<h1>Latest Minecraft Version Calculator</h1>
-	</span>
-
-	<span>
-		<label for="platform-form">Platform:</label>
-		<select id="platform-form">
-			<option>Java</option>
-		</select>
-		<label for="datetime-form">Date:</label>
-		<input type="datetime-local" id="datetime-form" onclick="this.showPicker()">
-		<span>
-			<label for="utc-offset-form">UTC Offset:</label>
-			<input type="range" min="-12" max="14" step="0.25" id="utc-offset-form">
-			<p id="current-utc-offset"></p>
+	<span class="page">
+		<span class="title">
+			<h1>Latest Minecraft Version Calculator</h1>
 		</span>
-	</span>
 
-	<span>
-		<p id="latest-release"></p>
-		<p id="latest-snapshot"></p>
+		<span class="inputbox">
+			<span id="input-platform">
+				<label for="platform-form">Platform:</label>
+				<select id="platform-form">
+					<option>Java</option>
+				</select>
+			</span>
+			<span id="input-datetime">
+				<label for="datetime-form">Date:</label>
+				<input type="datetime-local" id="datetime-form" onclick="this.showPicker()">
+			</span>
+			<span id="input-utc-offset">
+				<label for="utc-offset-form">UTC Offset:</label>
+				<input type="range" min="-12" max="14" step="0.25" id="utc-offset-form">
+				<span id="current-utc-offset"></span>
+			</span>
+		</span>
+
+		<span class="outputbox">
+			<span id="latest-release-box">
+				<p>Latest release:</p>
+				<p id="latest-release"></p>
+				<p id="latest-release-time"></p>
+			</span>
+			<span id="latest-snapshot-box">
+				<p>Latest snapshot:</p>
+				<p id="latest-snapshot"></p>
+				<p id="latest-snapshot-time"></p>
+			</span>
+		</span>
+
+		<span class="about">
+			<p>The list of Java versions is based on a harmonization of [...], [...], and [...]. It may contain errors[...].</p>
+		</span>
 	</span>
 
 	<script type="module" src="/src/main.ts"></script>
