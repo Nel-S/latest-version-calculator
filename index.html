@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
 	<meta charset="UTF-8" />
 	<link rel="stylesheet" type="text/css" href="/style.css">
@@ -7,57 +8,63 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<title>Latest Minecraft Version Calculator</title>
 </head>
+
 <body>
 
 	<noscript>
-		<span>
+		<div>
 			<p>This page requires JavaScript to function.</p>
-			<p>As an alternative, you can browse the Minecraft Wiki's articles regarding the <a href="https://minecraft.wiki/w/Java_Edition_version_history">Java Edition version history</a>, <a href="https://minecraft.wiki/w/Bedrock_Edition_version_history">Bedrock Edition version history</a>, etc.</p>
-		</span>
+			<p>As an alternative, you can browse the Minecraft Wiki's articles regarding the <a
+					href="https://minecraft.wiki/w/Java_Edition_version_history">Java Edition version history</a>, <a
+					href="https://minecraft.wiki/w/Bedrock_Edition_version_history">Bedrock Edition version history</a>,
+				etc.</p>
+		</div>
 	</noscript>
 
-	<span class="page">
-		<span class="title">
+	<div class="page">
+		<div class="title">
 			<h1>Latest Minecraft Version Calculator</h1>
-		</span>
+		</div>
 
 		<ul class="input-box">
 			<li class="input-entry">
-				<label for="platform-form">Platform:</label>
+				<label for="platform-form">Platform</label>
 				<select class="listener" id="platform-form">
 					<option>Java</option>
 					<option>Bedrock</option>
 				</select>
 			</li>
 			<li class="input-entry">
-				<label for="datetime-form">Date:</label>
+				<label for="datetime-form">Date</label>
 				<input type="datetime-local" class="listener" id="datetime-form" onclick="this.showPicker()">
 			</li>
 			<li class="input-entry input-utc-hires">
-				<label for="utc-offset-form">UTC Offset:</label>
+				<label for="utc-offset-form">UTC Offset</label>
 				<input type="range" min="-12" max="14" step="0.25" class="listener" id="utc-offset-form">
-				<span id="current-utc-offset"></span>
+				<div id="current-utc-offset"></div>
 			</li>
 		</ul>
 
-		<span class="output-box">
-			<span id="latest-release-box">
+		<div class="output-box">
+			<div id="latest-release-box">
 				<p class="version-title">Latest release:</p>
 				<p class="version-name" id="latest-release"></p>
 				<p class="version-time" id="latest-release-time"></p>
-			</span>
-			<span id="latest-snapshot-box">
+			</div>
+			<div id="latest-snapshot-box">
 				<p class="version-title">Latest snapshot:</p>
 				<p class="version-name" id="latest-snapshot"></p>
 				<p class="version-time" id="latest-snapshot-time"></p>
-			</span>
-		</span>
+			</div>
+		</div>
 
-		<span class="about">
-			<p>The list of Java versions is based on a harmonization of [...], [...], and [...]. It may contain errors[...].</p>
-		</span>
-	</span>
+	</div>
+	<div class="about">
+		<p>The list of Java versions is based on a harmonization of [...], [...], and [...]. It may contain
+			errors[...].</p>
+	</div>
 
 	<script type="module" src="/src/main.ts"></script>
 </body>
+
 </html>
