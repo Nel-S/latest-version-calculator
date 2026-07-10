@@ -1,97 +1,107 @@
-import {getElementOrNull, getElementOrThrow} from "./util.js"
-import {Entry, getLatestVersions, validateNodeList} from "./version-lists/helpers.js";
-import {JAVA_VERSIONS} from "./version-lists/java.js"
+import {DatetimeWithMemory} from "./datememory.js";
+import {ElementUtils} from "./util.js"
+import {VersionList} from "./version-lists/helpers.js";
+import {JAVA_VERSION_LIST} from "./version-lists/java.js"
+import {BEDROCK_VERSION_LIST} from "./version-lists/bedrock.js";
 
+const datetimeWithMemory = new DatetimeWithMemory(
+	"#datetime-form",
+	"#utc-offset-form",
+	".input-utc-hires"
+)
 
 function initialize(): void {
-	const platformForm = getElementOrThrow<HTMLInputElement>("#platform-form");
-	platformForm.addEventListener("input", function(){recalculate();});
+	// TODO: Replace with "listening" class
+	// document.querySelectorAll<HTMLInputElement>(".listener").forEach(
+	// 	element => (element.addEventListener("input", function(){recalculate();}))
+	// );
 
-	const dateForm = getElementOrThrow<HTMLInputElement>("#datetime-form");
+	// Add event listeners.
+	const platformForm = ElementUtils.getElementOrThrow<HTMLInputElement>("#platform-form");
+	platformForm.addEventListener("input", function(){updateDatetimeResolution(); recalculate();});
+
+	const dateForm = ElementUtils.getElementOrThrow<HTMLInputElement>("#datetime-form");
 	dateForm.addEventListener("input", function(){recalculate();});
 
-	const utcOffsetForm = getElementOrThrow<HTMLInputElement>("#utc-offset-form");
-	utcOffsetForm.addEventListener("input", function(){recalculate(); updateRangeOutput();});
+	const utcOffsetForm = ElementUtils.getElementOrThrow<HTMLInputElement>("#utc-offset-form");
+	utcOffsetForm.addEventListener("input", function(){updateRangeOutput(); recalculate();});
 
-	setFormsWithCurrentDatetime(dateForm, utcOffsetForm);
+	// Call functions to initialize the page on the current date/time.
+	updateDatetimeResolution();
 	updateRangeOutput();
 	recalculate();
 }
 
+// Update the UTC offset output to match the corresponding slider's value.
 function updateRangeOutput(): void {
-	const utcOffsetForm = getElementOrThrow<HTMLInputElement>("#utc-offset-form");
-	const currentUtcOffsetOutput = getElementOrThrow<HTMLDataElement>("#current-utc-offset");
+	// Get elements
+	const utcOffsetForm = ElementUtils.getElementOrThrow<HTMLInputElement>("#utc-offset-form");
+	const currentUtcOffsetOutput = ElementUtils.getElementOrThrow<HTMLDataElement>("#current-utc-offset");
 
-	currentUtcOffsetOutput.innerHTML = `(${utcOffsetForm.value})`;
+	currentUtcOffsetOutput.innerText = `(${utcOffsetForm.value})`;
 }
 
-function setFormsWithCurrentDatetime(dateForm: HTMLInputElement, utcOffsetForm: HTMLInputElement): void {
-	let currentDatetime = new Date();
-	utcOffsetForm.value = (Math.round(-currentDatetime.getTimezoneOffset()/15)/4).toString();
-	currentDatetime.setMinutes(currentDatetime.getMinutes() - currentDatetime.getTimezoneOffset());
-	dateForm.value = currentDatetime.toISOString().slice(0, 16);
+// Update the datetime resolution to match the current version list.
+function updateDatetimeResolution(): void {
+	// Get current list's resolution
+	const versionList = getListFromForm();
+	if (!versionList || versionList.highResolution) datetimeWithMemory.toHighResolution();
+	else datetimeWithMemory.toLowResolution();
 }
 
-function getDatetimeFromForm(): Date | null {
-	const dateForm = getElementOrNull<HTMLInputElement>("#datetime-form");
-	if (!dateForm) return null;
-	const utcOffsetForm = getElementOrNull<HTMLInputElement>("#utc-offset-form");
-	if (!utcOffsetForm) return null;
-	
-	let datetime = new Date(dateForm.value + "Z");
-	datetime.setUTCMinutes(datetime.getUTCMinutes() - 60*Number(utcOffsetForm.value));
-	return datetime;
-}
-
-function getListFromForm(): Entry[] | null {
-	const platformForm = getElementOrNull<HTMLInputElement>("#platform-form");
+function getListFromForm(): VersionList | null {
+	const platformForm = ElementUtils.getElementOrNull<HTMLInputElement>("#platform-form");
 	if (!platformForm) return null;
 	
 	switch (platformForm.value) {
 		case "Java":
-			validateNodeList(JAVA_VERSIONS);
-			return JAVA_VERSIONS;
-		default: return null;
+			JAVA_VERSION_LIST.validate();
+			return JAVA_VERSION_LIST;
+		case "Bedrock":
+			BEDROCK_VERSION_LIST.validate();
+			return BEDROCK_VERSION_LIST;
+		default:
+			return null;
 	}
 }
 
 function recalculate(): void {
-	const releaseOutput = getElementOrThrow("#latest-release");
-	const releaseTimeOutput = getElementOrThrow("#latest-release-time");
-	const snapshotOutput = getElementOrThrow("#latest-snapshot");
-	const snapshotTimeOutput = getElementOrThrow("#latest-snapshot-time");
+	const releaseOutput = ElementUtils.getElementOrThrow("#latest-release");
+	const releaseTimeOutput = ElementUtils.getElementOrThrow("#latest-release-time");
+	const snapshotOutput = ElementUtils.getElementOrThrow("#latest-snapshot");
+	const snapshotTimeOutput = ElementUtils.getElementOrThrow("#latest-snapshot-time");
 
 	const list = getListFromForm();
 	if (!list) {
-		releaseOutput.innerHTML = `[Invalid platform provided.]`;
-		releaseTimeOutput.innerHTML = "";
-		snapshotOutput.innerHTML = `[Invalid platform provided.]`;
-		snapshotTimeOutput.innerHTML = "";
+		releaseOutput.innerText = `[Invalid platform]`;
+		releaseTimeOutput.innerText = "";
+		snapshotOutput.innerText = `[Invalid platform]`;
+		snapshotTimeOutput.innerText = "";
 		return;
 	}
 
-	const datetime = getDatetimeFromForm();
-	if (!datetime || isNaN(datetime.getTime())) {
-		releaseOutput.innerHTML = `[Invalid date/time provided.]`;
-		releaseTimeOutput.innerHTML = "";
-		snapshotOutput.innerHTML = `[Invalid date/time provided.]`;
-		snapshotTimeOutput.innerHTML = "";
+	const datetime = datetimeWithMemory.read();
+	if (!datetime) {
+		releaseOutput.innerText = `[Invalid date/time]`;
+		releaseTimeOutput.innerText = "";
+		snapshotOutput.innerText = `[Invalid date/time]`;
+		snapshotTimeOutput.innerText = "";
 		return;
 	}
 	// console.log(datetime.toISOString());
 	
-	const {releaseEntry, snapshotEntry} = getLatestVersions(JAVA_VERSIONS, datetime);
-	releaseOutput.innerHTML = releaseEntry ?
+	const {releaseEntry, snapshotEntry} = list.getLatestVersionsOn(datetime);
+	releaseOutput.innerText = releaseEntry ?
 		`${releaseEntry.name}` :
-		`[No releases existed for the provided platform on this date.]`;
-	releaseTimeOutput.innerHTML = releaseEntry ?
-		`(around ${releaseEntry.timestamp.toISOString().slice(0, 16).replace("T", " ")} UTC)` :
+		`[No releases existed]`;
+	releaseTimeOutput.innerText = releaseEntry ?
+		`~ ${releaseEntry.timestamp.toISOString().slice(0, 16).replace("T", " ")} UTC` :
 		"";
-	snapshotOutput.innerHTML = snapshotEntry ?
+	snapshotOutput.innerText = snapshotEntry ?
 		`${snapshotEntry.name}` :
-		`[No snapshots existed for the provided platform on this date.]`;
-	snapshotTimeOutput.innerHTML = snapshotEntry ?
-		`(around ${snapshotEntry.timestamp.toISOString().slice(0, 16).replace("T", " ")} UTC)` :
+		`[No snapshots existed]`;
+	snapshotTimeOutput.innerText = snapshotEntry ?
+		`~ ${snapshotEntry.timestamp.toISOString().slice(0, 16).replace("T", " ")} UTC` :
 		"";
 }
 

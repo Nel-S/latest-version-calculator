@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8" />
-	<link rel="stylesheet" type="text/css" href="/reset.css">
 	<link rel="stylesheet" type="text/css" href="/style.css">
 	<!-- <link rel="icon" type="image/svg+xml" href="/favicon.svg" /> -->
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -22,34 +21,35 @@
 			<h1>Latest Minecraft Version Calculator</h1>
 		</span>
 
-		<span class="inputbox">
-			<span id="input-platform">
+		<ul class="input-box">
+			<li class="input-entry">
 				<label for="platform-form">Platform:</label>
-				<select id="platform-form">
+				<select class="listener" id="platform-form">
 					<option>Java</option>
+					<option>Bedrock</option>
 				</select>
-			</span>
-			<span id="input-datetime">
+			</li>
+			<li class="input-entry">
 				<label for="datetime-form">Date:</label>
-				<input type="datetime-local" id="datetime-form" onclick="this.showPicker()">
-			</span>
-			<span id="input-utc-offset">
+				<input type="datetime-local" class="listener" id="datetime-form" onclick="this.showPicker()">
+			</li>
+			<li class="input-entry input-utc-hires">
 				<label for="utc-offset-form">UTC Offset:</label>
-				<input type="range" min="-12" max="14" step="0.25" id="utc-offset-form">
+				<input type="range" min="-12" max="14" step="0.25" class="listener" id="utc-offset-form">
 				<span id="current-utc-offset"></span>
-			</span>
-		</span>
+			</li>
+		</ul>
 
-		<span class="outputbox">
+		<span class="output-box">
 			<span id="latest-release-box">
-				<p>Latest release:</p>
-				<p id="latest-release"></p>
-				<p id="latest-release-time"></p>
+				<p class="version-title">Latest release:</p>
+				<p class="version-name" id="latest-release"></p>
+				<p class="version-time" id="latest-release-time"></p>
 			</span>
 			<span id="latest-snapshot-box">
-				<p>Latest snapshot:</p>
-				<p id="latest-snapshot"></p>
-				<p id="latest-snapshot-time"></p>
+				<p class="version-title">Latest snapshot:</p>
+				<p class="version-name" id="latest-snapshot"></p>
+				<p class="version-time" id="latest-snapshot-time"></p>
 			</span>
 		</span>
 

@@ -1,59 +1,74 @@
-export class Entry {
-    name: string
-    timestamp: Date
-    snapshot: boolean
+import {DateUtils} from "../util";
 
-    constructor(name: string, timestamp: Date, snapshot: boolean = false) {
-        this.name = name;
-        this.timestamp = timestamp;
-        this.snapshot = snapshot;
-    }
+export class Entry {
+	name: string
+	timestamp: Date
+	snapshot: boolean
+
+	constructor(name: string, timestamp: Date, snapshot: boolean = false) {
+		this.name = name;
+		this.timestamp = timestamp;
+		this.snapshot = snapshot;
+	}
 };
 
-export function validateNodeList(list: Entry[]): void {
-    for (let i = 0; i < list.length; ++i) {
-        if (i < list.length - 1 && list[i].timestamp < list[i + 1].timestamp) throw new Error(`List entries are out of order chronlogically (indices ${list[i].name}-${list[i + 1].name}).`);
-    }
-}
+export class VersionList {
+	entries: Entry[]
+	highResolution: boolean
+	hasSnapshots: boolean
 
-export function getLatestVersions(list: Entry[], date: Date) : {releaseEntry: Entry | null, snapshotEntry: Entry | null} {
-    if (!list || !date) return {releaseEntry: null, snapshotEntry: null};
+	constructor(entries: Entry[], highResolution: boolean = false, hasSnapshots: boolean = false) {
+		this.entries = entries;
+		this.highResolution = highResolution;
+		this.hasSnapshots = hasSnapshots;
+	}
 
-    // let latestIndex: number;
-    // for (latestIndex = 0; latestIndex < list.length && date < list[latestIndex].timestamp; ++latestIndex);
-    // if (latestIndex >= list.length) return {releaseEntry: null, snapshotEntry: null};
-    // console.log([latestIndex]);
+	validate(): void {
+		for (let i = 0; i < this.entries.length; ++i) {
+			if (DateUtils.isInvalid(this.entries[i].timestamp)) throw new Error(`List entry ${this.entries[i].name} has an invalid timestamp.`);
+			if (i < this.entries.length - 1 && this.entries[i].timestamp < this.entries[i + 1].timestamp) throw new Error(`List entries are out of order chronlogically (indices ${this.entries[i].name}-${this.entries[i + 1].name}).`);
+		}
+	}
+
+	getLatestVersionsOn(date: Date) : {releaseEntry: Entry | null, snapshotEntry: Entry | null} {
+		if (!this.entries || !date) return {releaseEntry: null, snapshotEntry: null};
+
+		// let latestIndex: number;
+		// for (latestIndex = 0; latestIndex < this.entries.length && date < this.entries[latestIndex].timestamp; ++latestIndex);
+		// if (latestIndex >= this.entries.length) return {releaseEntry: null, snapshotEntry: null};
+		// console.log([latestIndex]);
 
 
-    // Find the minimum i such that date >= list[i].
-    // = Either date >= list[0], or for i > 1, find i such that list[i - 1] > date >= list[i].
-    let latestIndex = 0, earliestIndex = list.length - 1;
-    let found = false;
-    // While there's still a range of indices to check:
-    while (latestIndex <= earliestIndex) {
-        // Get (approximate) middle index
-        const middleIndex = Math.floor((latestIndex + earliestIndex)/2);
-        // console.log([latestIndex, earliestIndex, middleIndex]);
-        // If not (date >= list[i]), we can discard entries 0-i
-        if (date < list[middleIndex].timestamp) {
-            latestIndex = middleIndex + 1;
-            continue;
-        }
-        // If not (list[i - 1] > date), we can discard entries i-end
-        if (middleIndex > 0 && list[middleIndex - 1].timestamp <= date) {
-            earliestIndex = middleIndex - 1;
-            continue;
-        }
-        // Otherwise list[i - 1] > date >= list[i] as desired
-        latestIndex = middleIndex;
-        found = true;
-        break;
-    }
-    // console.log([latestIndex, earliestIndex, found]);
-    if (!found) return {releaseEntry: null, snapshotEntry: null};
+		// Find the minimum i such that date >= this.entries[i].
+		// = Either date >= this.entries[0], or for i > 1, find i such that this.entries[i - 1] > date >= this.entries[i].
+		let latestIndex = 0, earliestIndex = this.entries.length - 1;
+		let found = false;
+		// While there's still a range of indices to check:
+		while (latestIndex <= earliestIndex) {
+			// Get (approximate) middle index
+			const middleIndex = Math.floor((latestIndex + earliestIndex)/2);
+			// console.log([latestIndex, earliestIndex, middleIndex]);
+			// If not (date >= this.entries[i]), we can discard entries 0-i
+			if (date < this.entries[middleIndex].timestamp) {
+				latestIndex = middleIndex + 1;
+				continue;
+			}
+			// If not (this.entries[i - 1] > date), we can discard entries i-end
+			if (middleIndex > 0 && this.entries[middleIndex - 1].timestamp <= date) {
+				earliestIndex = middleIndex - 1;
+				continue;
+			}
+			// Otherwise this.entries[i - 1] > date >= this.entries[i] as desired
+			latestIndex = middleIndex;
+			found = true;
+			break;
+		}
+		// console.log([latestIndex, earliestIndex, found]);
+		if (!found) return {releaseEntry: null, snapshotEntry: null};
 
-    const snapshotEntry = list[latestIndex];
-    while (latestIndex < list.length && list[latestIndex].snapshot) ++latestIndex;
-    const releaseEntry = latestIndex >= list.length ? null : list[latestIndex];
-    return {releaseEntry: releaseEntry, snapshotEntry: snapshotEntry};
-}
+		const snapshotEntry = this.entries[latestIndex];
+		while (latestIndex < this.entries.length && this.entries[latestIndex].snapshot) ++latestIndex;
+		const releaseEntry = latestIndex >= this.entries.length ? null : this.entries[latestIndex];
+		return {releaseEntry: releaseEntry, snapshotEntry: snapshotEntry};
+	}
+};

@@ -1,0 +1,55 @@
+@layer components {
+	.page {
+		display: flex;
+		flex-flow: column;
+		justify-content: space-around;
+		align-items: justify;
+	}
+
+	.title {
+		/* flex: 10%; */
+		font-size: x-large;
+		font-weight: bold;
+		text-align: center;
+	}
+
+	.input-box {
+		/* flex: 20%; */
+		display: flex;
+		flex-flow: row wrap;
+		justify-content: space-evenly;
+		align-items: center;
+	}
+
+	.input-element {
+		flex: 1 0 0;
+	}
+
+	.output-box {
+		/* flex: 40%; */
+		display: flex;
+		flex-flow: row wrap;
+		justify-content: space-evenly;
+	}
+
+	.version-title {
+		font-size: larger;
+		text-align: center;
+	}
+
+	.version-name {
+		font-size: xx-large;
+		font-weight: bold;
+		text-align: center;
+	}
+
+	.version-time {
+		font-size: larger;
+		font-style: italic;
+		text-align: center;
+	}
+
+	/* .about {
+		flex: auto;
+	} */
+}

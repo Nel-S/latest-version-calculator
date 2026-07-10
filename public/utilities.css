@@ -1,0 +1,9 @@
+@layer utilities {
+	.hidden {
+		display: none;
+	}
+
+	.hidden-but-keeps-space {
+		visibility: hidden;
+	}
+}

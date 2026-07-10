@@ -1,36 +1,6 @@
-body {
-    background-color: #f0f0f0;
-}
+@layer reset, defaults, components, utilities;
 
-.page {
-    display: flex;
-    flex-flow: column;
-    justify-content: space-around;
-    align-items: justify;
-}
-
-.title {
-    /* flex: 10%; */
-    font-size: x-large;
-    font-weight: bold;
-    text-align: center;
-}
-
-.inputbox {
-    /* flex: 20%; */
-    display: flex;
-    flex-flow: row wrap;
-    justify-content: space-around;
-    align-items: center;
-}
-
-.outputbox {
-    /* flex: 40%; */
-    display: flex;
-    flex-flow: row wrap;
-    justify-content: space-around;
-}
-
-/* .about {
-    flex: auto;
-} */
+@import url("reset.css") layer(reset);
+@import url("defaults.css") layer(defaults);
+@import url("components.css") layer(components);
+@import url("utilities.css") layer(utilities);
