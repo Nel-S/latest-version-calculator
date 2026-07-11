@@ -46,6 +46,7 @@ export class DatetimeWithMemory {
 
     load(): void {
         const datetime = DateUtils.getUTCDatetime(this.dateElement);
+        if (datetime == null) throw new Error(`Tried to load an invalid datetime (${this.dateElement.value}).`);
         if (this.lastHours != null) datetime.setUTCHours(this.lastHours);
         if (this.lastMinutes != null) datetime.setUTCMinutes(this.lastMinutes);
         this.dateElement.value = DateUtils.extractDateAndTime(datetime);
