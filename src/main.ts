@@ -1,5 +1,5 @@
 import {DatetimeWithMemory} from "./datememory.js";
-import {ElementUtils} from "./util.js"
+import {DateUtils, ElementUtils} from "./util.js"
 import {VersionList} from "./version-lists/helpers.js";
 import {JAVA_VERSION_LIST} from "./version-lists/java.js"
 import {BEDROCK_VERSION_LIST} from "./version-lists/bedrock.js";
@@ -38,7 +38,7 @@ function updateRangeOutput(): void {
 	const utcOffsetForm = ElementUtils.getElementOrThrow<HTMLInputElement>("#utc-offset-form");
 	const currentUtcOffsetOutput = ElementUtils.getElementOrThrow<HTMLDataElement>("#current-utc-offset");
 
-	currentUtcOffsetOutput.innerText = `(${utcOffsetForm.value})`;
+	currentUtcOffsetOutput.innerText = `(UTC${Number(utcOffsetForm.value) > 0 ? "+" : ""}${utcOffsetForm.value != "0" ? utcOffsetForm.value : ""})`;
 }
 
 // Update the datetime resolution to match the current version list.
@@ -70,6 +70,7 @@ function recalculate(): void {
 	const releaseTimeOutput = ElementUtils.getElementOrThrow("#latest-release-time");
 	const snapshotOutput = ElementUtils.getElementOrThrow("#latest-snapshot");
 	const snapshotTimeOutput = ElementUtils.getElementOrThrow("#latest-snapshot-time");
+	const sourcesOutput = ElementUtils.getElementOrThrow("#sources-list");
 
 	const list = getListFromForm();
 	if (!list) {
@@ -80,6 +81,14 @@ function recalculate(): void {
 		return;
 	}
 
+	if (!list.sources.length) sourcesOutput.innerHTML = "[None]";
+	else {
+		sourcesOutput.innerHTML = "";
+		for (const source of list.sources) {
+			sourcesOutput.innerHTML += `<li>${source.toHTML()}</li>`;
+		}
+	}
+
 	const datetime = datetimeWithMemory.read();
 	if (!datetime) {
 		releaseOutput.innerText = `[Invalid date/time]`;
@@ -88,20 +97,19 @@ function recalculate(): void {
 		snapshotTimeOutput.innerText = "";
 		return;
 	}
-	// console.log(datetime.toISOString());
 	
 	const {releaseEntry, snapshotEntry} = list.getLatestVersionsOn(datetime);
 	releaseOutput.innerText = releaseEntry ?
 		`${releaseEntry.name}` :
 		`[No releases existed]`;
 	releaseTimeOutput.innerText = releaseEntry ?
-		`~ ${releaseEntry.timestamp.toISOString().slice(0, 16).replace("T", " ")} UTC` :
+		`~ ${list.highResolution ? DateUtils.extractDateAndTime(releaseEntry.timestamp, true) + " UTC" : DateUtils.extractDate(releaseEntry.timestamp)}` :
 		"";
 	snapshotOutput.innerText = snapshotEntry ?
 		`${snapshotEntry.name}` :
 		`[No snapshots existed]`;
 	snapshotTimeOutput.innerText = snapshotEntry ?
-		`~ ${snapshotEntry.timestamp.toISOString().slice(0, 16).replace("T", " ")} UTC` :
+		`~ ${list.highResolution ? DateUtils.extractDateAndTime(snapshotEntry.timestamp, true) + " UTC" : DateUtils.extractDate(snapshotEntry.timestamp)}` :
 		"";
 }
 

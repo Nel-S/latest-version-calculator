@@ -14,54 +14,56 @@
 	<noscript>
 		<div>
 			<p>This page requires JavaScript to function.</p>
-			<p>As an alternative, you can browse the Minecraft Wiki's articles regarding the <a
-					href="https://minecraft.wiki/w/Java_Edition_version_history">Java Edition version history</a>, <a
-					href="https://minecraft.wiki/w/Bedrock_Edition_version_history">Bedrock Edition version history</a>,
-				etc.</p>
+			<p>As an alternative, you can browse Omniarchive's indices for Java Edition (<a href="https://docs.google.com/spreadsheets/d/1OCxMNQLeZJi4BlKKwHx2OlzktKiLEwFXnmCrSdAFwYQ">1</a> and <a href="https://docs.google.com/spreadsheets/d/1YuDRk6zulCPTE5hRDJC797ORQeB27j_lpOM2Y6onb_g">2</a>), as well as the Minecraft Wiki's articles regarding the <a href="https://minecraft.wiki/w/Java_Edition_version_history">Java Edition version history</a>, <a href="https://minecraft.wiki/w/Bedrock_Edition_version_history">Bedrock Edition version history</a>, etc.</p>
 		</div>
 	</noscript>
 
 	<div class="page">
-		<div class="title">
-			<h1>Latest Minecraft Version Calculator</h1>
+		<div>
+			<h1 class="title">Latest Minecraft Version Calculator</h1>
+			<p class="subtext">Last updated: July 10th, 2026</p>
 		</div>
 
 		<ul class="input-box">
-			<li class="input-entry">
-				<label for="platform-form">Platform</label>
+			<li class="narrow-rounded-box input-entry">
+				<label class="label" for="platform-form">Platform:</label>
 				<select class="listener" id="platform-form">
 					<option>Java</option>
-					<option>Bedrock</option>
+					<!-- <option>Bedrock</option> -->
 				</select>
 			</li>
-			<li class="input-entry">
-				<label for="datetime-form">Date</label>
+			<li class="narrow-rounded-box input-entry">
+				<label class="label" for="datetime-form">Date:</label>
 				<input type="datetime-local" class="listener" id="datetime-form" onclick="this.showPicker()">
 			</li>
-			<li class="input-entry input-utc-hires">
-				<label for="utc-offset-form">UTC Offset</label>
+			<li class="narrow-rounded-box input-entry input-utc-hires">
+				<label class="label" for="utc-offset-form">UTC Offset:</label>
 				<input type="range" min="-12" max="14" step="0.25" class="listener" id="utc-offset-form">
-				<div id="current-utc-offset"></div>
+				<div class="subtext" id="current-utc-offset"></div>
 			</li>
 		</ul>
 
-		<div class="output-box">
+		<div class="rounded-box output-box">
 			<div id="latest-release-box">
-				<p class="version-title">Latest release:</p>
+				<p class="label">Latest release:</p>
 				<p class="version-name" id="latest-release"></p>
-				<p class="version-time" id="latest-release-time"></p>
+				<p class="subtext" id="latest-release-time"></p>
 			</div>
 			<div id="latest-snapshot-box">
-				<p class="version-title">Latest snapshot:</p>
+				<p class="label">Latest snapshot:</p>
 				<p class="version-name" id="latest-snapshot"></p>
-				<p class="version-time" id="latest-snapshot-time"></p>
+				<p class="subtext" id="latest-snapshot-time"></p>
 			</div>
 		</div>
 
+		<div class="sources-box">
+			<p class="smaller-label">Sources used:</p>
+			<ul class="smaller-subtext" id="sources-list"></ul>
+		</div>
 	</div>
-	<div class="about">
-		<p>The list of Java versions is based on a harmonization of [...], [...], and [...]. It may contain
-			errors[...].</p>
+	<div class="about smaller-label">
+		<p>This tool uses harmonizations of multiple sources. It may contain errors; please file <a href="https://github.com/Nel-S/latest-version-calculator/issues">an Issue</a> if so.</p>
+		<p>Thank you to <a href="https://github.com/Moresteck">Moresteck</a>, <a href="https://github.com/fanda857">fanda857</a>, and <a href="https://omniarchive.uk/">Omniarchive</a>'s/<a href="https://minecraft.wiki/">the Minecraft Wiki</a>'s contributors for making this possible.</p>
 	</div>
 
 	<script type="module" src="/src/main.ts"></script>

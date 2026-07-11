@@ -11,11 +11,14 @@ export class DateUtils {
 		*/
 		return date.toISOString().slice(0, 10);
 	}
-	static extractDateAndTime(datetime: Date): string {
+	static extractDateAndTime(datetime: Date, humanReadable: boolean = false): string {
 		/* Date.toISOString will be in the format YYYY-MM-DDThh:mm:ss...
 		                                          ^^^^^^^^^^^^^^^^
 		*/
-		return datetime.toISOString().slice(0, 16);
+		let newDatetime = datetime.toISOString().slice(0, 16);
+		// If human readability is desired, replace T with a space
+		if (humanReadable) newDatetime = newDatetime.replace("T", " ");
+		return newDatetime;
 	}
 	static localToUTC(datetime: Date): Date {
 		datetime.setMinutes(datetime.getMinutes() - datetime.getTimezoneOffset());

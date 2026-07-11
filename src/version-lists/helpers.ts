@@ -12,15 +12,29 @@ export class Entry {
 	}
 };
 
+export class Source {
+	url: string
+	label: string
+
+	constructor(url: string, label: string = "") {
+		this.url = url;
+		this.label = label ? label : url;
+	}
+
+	toHTML(): string {
+		return `<a href="${this.url}">${this.label}</a>`;
+	}
+};
+
 export class VersionList {
 	entries: Entry[]
+	sources: Source[]
 	highResolution: boolean
-	hasSnapshots: boolean
 
-	constructor(entries: Entry[], highResolution: boolean = false, hasSnapshots: boolean = false) {
+	constructor(entries: Entry[], sources: Source[], highResolution: boolean = false) {
 		this.entries = entries;
 		this.highResolution = highResolution;
-		this.hasSnapshots = hasSnapshots;
+		this.sources = sources;
 	}
 
 	validate(): void {
