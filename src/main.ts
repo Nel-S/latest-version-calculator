@@ -1,8 +1,9 @@
 import {DatetimeWithMemory} from "./datememory.js";
 import {DateUtils, ElementUtils} from "./util.js"
-import {VersionList} from "./version-lists/helpers.js";
-import {JAVA_VERSION_LIST} from "./version-lists/java.js"
-import {BEDROCK_VERSION_LIST} from "./version-lists/bedrock.js";
+import {VersionListMethods, versionListSchema} from "./version-lists/helpers.js";
+import type {VersionList} from "./version-lists/helpers.js";
+import * as java_versions from "./version-lists/java.json"
+import * as bedrock_versions from "./version-lists/bedrock.json"
 
 const datetimeWithMemory = new DatetimeWithMemory(
 	"#datetime-form",
@@ -55,11 +56,9 @@ function getListFromForm(): VersionList | null {
 	
 	switch (platformForm.value) {
 		case "Java":
-			JAVA_VERSION_LIST.validate();
-			return JAVA_VERSION_LIST;
+			return versionListSchema.parse(java_versions);
 		case "Bedrock":
-			BEDROCK_VERSION_LIST.validate();
-			return BEDROCK_VERSION_LIST;
+			return versionListSchema.parse(bedrock_versions);
 		default:
 			return null;
 	}
@@ -85,7 +84,7 @@ function recalculate(): void {
 	else {
 		sourcesOutput.innerHTML = "";
 		for (const source of list.sources) {
-			sourcesOutput.innerHTML += `<li>${source.toHTML()}</li>`;
+			sourcesOutput.innerHTML += `<li>${VersionListMethods.sourceToHTML(source)}</li>`;
 		}
 	}
 
@@ -98,7 +97,7 @@ function recalculate(): void {
 		return;
 	}
 	
-	const {releaseEntry, snapshotEntry} = list.getLatestVersionsOn(datetime);
+	const {releaseEntry, snapshotEntry} = VersionListMethods.getLatestVersionsOn(list, datetime);
 	releaseOutput.innerText = releaseEntry ?
 		`${releaseEntry.name}` :
 		`[No releases existed]`;
