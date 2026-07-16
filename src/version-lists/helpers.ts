@@ -1,5 +1,4 @@
-// TODO: Replace with zod/mini when stable
-import {z} from "zod";
+import {z} from "zod/mini";
 import {DateUtils} from "../util";
 
 // Recommended URL parameters from Zod's documentation
@@ -20,38 +19,70 @@ type Linkable = z.infer<typeof linkableSchema>;
 
 const entrySchema = z.object({
 	...linkableSchema.shape,
-	// Timestamps are originally strings, converted to dates...
-	timestamp: z.string("Provided timestamp for an entry is not a valid string.").transform((timestamp) => {
-		return new Date(timestamp);
+	timestamp: z.pipe(
+		// Timestamps are originally strings...
+		z.string("Provided timestamp for an entry is not a valid string."),
+		// ...converted to dates...
+		z.transform(
+			(timestamp) => new Date(timestamp)
+		)
 	// ...and verified to ensure they're valid dates
-	}).refine((timestamp) => !DateUtils.isInvalid(timestamp), "Provided timestamp for an entry is not a valid date or datetime."),
+	).check(
+		z.refine(
+			(timestamp) => !DateUtils.isInvalid(timestamp),
+			"Provided timestamp for an entry does not convert to a valid date or datetime."
+		)
+	),
 	// URLs are optional in entries
-	url: urlSchema.optional().default(""),
-	snapshot: z.boolean("Provided snapshot status for an entry is not a valid Boolean.").optional().default(false)
+	url: z._default(z.optional(
+		urlSchema
+	), ""),
+	// Snapshot status defaults to false
+	snapshot: z._default(z.optional(
+		z.boolean("Provided snapshot status for an entry is not a valid Boolean.")
+	), false)
 });
 type Entry = z.infer<typeof entrySchema>;
 
 const sourceSchema = z.object({
 	...linkableSchema.shape,
 	// Names are optional in sources (defaulting to their URLs if not provided)
-	name: z.string("Provided name for a source is not a valid string.").optional().default(""),
+	name: z._default(z.optional(
+		z.string("Provided name for a source is not a valid string.")
+	), ""),
 });
 // type Source = z.infer<typeof sourceSchema>;
 
-export const versionListSchema = z.object({
-	entries: z.array(entrySchema).transform((entries) => {
-		return [...entries].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+export const versionListSchema = z.pipe(
+	// Attributes pulled from JSON
+	z.object({
+		entries: z.pipe(
+			z.array(entrySchema),
+			// Entries are sorted by time descending
+			z.transform(
+				(entries) => [...entries].sort(
+					(a, b) => b.timestamp.getTime() - a.timestamp.getTime()
+				)
+			)
+		),
+		// Sources default to an empty list if unprovided
+		sources: z._default(z.optional(
+			z.array(sourceSchema)
+		), []),
 	}),
-	sources: z.array(sourceSchema).optional().default([]),
-}).transform((data) => ({
-	...data,
-	highResolution: data.entries.filter((entry) => {
-		return DateUtils.extractTime(entry.timestamp) != "00:00:00"
-	}).length > 0,
-	hasSnapshots: data.entries.filter((entry) => {
-		return entry.snapshot
-	}).length > 0
-}));
+	// Derived attributes
+	z.transform((data) => ({
+		...data,
+		// Whether version list contains timestamp data (versus only dates)
+		highResolution: data.entries.some(
+			(entry) => DateUtils.extractTime(entry.timestamp) != "00:00:00"
+		),
+		// Whether version list contains snapshots (or only releases)
+		hasSnapshots: data.entries.some(
+			(entry) => entry.snapshot
+		)
+	}))
+);
 export type VersionList = z.infer<typeof versionListSchema>;
 
 export class VersionListMethods {
