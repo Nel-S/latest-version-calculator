@@ -1,5 +1,13 @@
 // TODO: Replace with zod/mini when stable
 import {z} from "zod";
+import {DateUtils} from "../util";
+
+// Recommended URL parameters from Zod's documentation
+const httpUrl = z.url({
+  protocol: /^https?$/,
+  hostname: z.regexes.domain,
+  normalize: true
+});
 
 const entrySchema = z.object({
 	name: z.string(),
@@ -7,14 +15,15 @@ const entrySchema = z.object({
 	timestamp: z.string().transform((timestamp) => {
 		return new Date(timestamp);
 	// ...and verified to ensure they're valid dates
-	}).refine((timestamp) => !isNaN(timestamp.getTime())),
+	}).refine((timestamp) => !DateUtils.isInvalid(timestamp)),
+	url: httpUrl.optional().default(""),
 	snapshot: z.boolean().optional().default(false)
 });
 type Entry = z.infer<typeof entrySchema>;
 
 const sourceSchema = z.object({
-	url: z.string(),
-	label: z.string()
+	url: httpUrl,
+	label: z.string().optional().default("")
 });
 type Source = z.infer<typeof sourceSchema>;
 
@@ -22,9 +31,16 @@ export const versionListSchema = z.object({
 	entries: z.array(entrySchema).transform((entries) => {
 		return [...entries].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
 	}),
-	sources: z.array(sourceSchema),
-	highResolution: z.boolean().default(false)
-});
+	sources: z.array(sourceSchema).optional().default([]),
+}).transform((data) => ({
+	...data,
+	highResolution: data.entries.filter((entry) => {
+		return DateUtils.extractTime(entry.timestamp) != "00:00:00"
+	}).length > 0,
+	hasSnapshots: data.entries.filter((entry) => {
+		return entry.snapshot
+	}).length > 0
+}));
 export type VersionList = z.infer<typeof versionListSchema>;
 
 export class VersionListMethods {
@@ -36,7 +52,7 @@ export class VersionListMethods {
 	// }
 
 	static sourceToHTML(source: Source): string {
-		return `<a href="${source.url}">${source.label}</a>`;
+		return `<a href="${source.url}">${source.label ? source.label : source.url}</a>`;
 	}
 
 	static getLatestVersionsOn(list: VersionList, date: Date) : {releaseEntry: Entry | null, snapshotEntry: Entry | null} {

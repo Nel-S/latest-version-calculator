@@ -3,7 +3,7 @@ import {DateUtils, ElementUtils} from "./util.js"
 import {VersionListMethods, versionListSchema} from "./version-lists/helpers.js";
 import type {VersionList} from "./version-lists/helpers.js";
 import * as java_versions from "./version-lists/java.json"
-import * as bedrock_versions from "./version-lists/bedrock.json"
+import * as xbox_360_versions from "./version-lists/xbox-360.json"
 
 const datetimeWithMemory = new DatetimeWithMemory(
 	"#datetime-form",
@@ -19,7 +19,7 @@ function initialize(): void {
 
 	// Add event listeners.
 	const platformForm = ElementUtils.getElementOrThrow<HTMLInputElement>("#platform-form");
-	platformForm.addEventListener("input", function(){updateDatetimeResolution(); recalculate();});
+	platformForm.addEventListener("input", function(){updateDatetimeResolution(); updateSanpshotOutput(); recalculate();});
 
 	const dateForm = ElementUtils.getElementOrThrow<HTMLInputElement>("#datetime-form");
 	dateForm.addEventListener("input", function(){recalculate();});
@@ -29,6 +29,7 @@ function initialize(): void {
 
 	// Call functions to initialize the page on the current date/time.
 	updateDatetimeResolution();
+	updateSanpshotOutput();
 	updateRangeOutput();
 	recalculate();
 }
@@ -50,6 +51,15 @@ function updateDatetimeResolution(): void {
 	else datetimeWithMemory.toLowResolution();
 }
 
+function updateSanpshotOutput(): void {
+	const snapshotBox = ElementUtils.getElementOrThrow<HTMLInputElement>("#snapshot-box");
+
+	// Get current list's resolution
+	const versionList = getListFromForm();
+	if (!versionList || versionList.hasSnapshots) snapshotBox.classList.remove("hidden");
+	else snapshotBox.classList.add("hidden");
+}
+
 function getListFromForm(): VersionList | null {
 	const platformForm = ElementUtils.getElementOrNull<HTMLInputElement>("#platform-form");
 	if (!platformForm) return null;
@@ -57,18 +67,18 @@ function getListFromForm(): VersionList | null {
 	switch (platformForm.value) {
 		case "Java":
 			return versionListSchema.parse(java_versions);
-		case "Bedrock":
-			return versionListSchema.parse(bedrock_versions);
+		case "Xbox 360":
+			return versionListSchema.parse(xbox_360_versions);
 		default:
 			return null;
 	}
 }
 
 function recalculate(): void {
-	const releaseOutput = ElementUtils.getElementOrThrow("#latest-release");
-	const releaseTimeOutput = ElementUtils.getElementOrThrow("#latest-release-time");
-	const snapshotOutput = ElementUtils.getElementOrThrow("#latest-snapshot");
-	const snapshotTimeOutput = ElementUtils.getElementOrThrow("#latest-snapshot-time");
+	const releaseOutput = ElementUtils.getElementOrThrow("#release");
+	const releaseTimeOutput = ElementUtils.getElementOrThrow("#release-time");
+	const snapshotOutput = ElementUtils.getElementOrThrow("#snapshot");
+	const snapshotTimeOutput = ElementUtils.getElementOrThrow("#snapshot-time");
 	const sourcesOutput = ElementUtils.getElementOrThrow("#sources-list");
 
 	const list = getListFromForm();
@@ -80,7 +90,7 @@ function recalculate(): void {
 		return;
 	}
 
-	if (!list.sources.length) sourcesOutput.innerHTML = "[None]";
+	if (!list.sources || !list.sources.length) sourcesOutput.innerHTML = "[None]";
 	else {
 		sourcesOutput.innerHTML = "";
 		for (const source of list.sources) {
@@ -98,18 +108,20 @@ function recalculate(): void {
 	}
 	
 	const {releaseEntry, snapshotEntry} = VersionListMethods.getLatestVersionsOn(list, datetime);
-	releaseOutput.innerText = releaseEntry ?
-		`${releaseEntry.name}` :
-		`[No releases existed]`;
-	releaseTimeOutput.innerText = releaseEntry ?
-		`~ ${list.highResolution ? DateUtils.extractDateAndTime(releaseEntry.timestamp, true) + " UTC" : DateUtils.extractDate(releaseEntry.timestamp)}` :
-		"";
-	snapshotOutput.innerText = snapshotEntry ?
-		`${snapshotEntry.name}` :
-		`[No snapshots existed]`;
-	snapshotTimeOutput.innerText = snapshotEntry ?
-		`~ ${list.highResolution ? DateUtils.extractDateAndTime(snapshotEntry.timestamp, true) + " UTC" : DateUtils.extractDate(snapshotEntry.timestamp)}` :
-		"";
+	if (!releaseEntry) {
+		releaseOutput.innerText = `[No releases existed]`;
+		releaseTimeOutput.innerText = "";
+	} else {
+		releaseOutput.innerHTML = releaseEntry.url ? `<a href=${releaseEntry.url}>${releaseEntry.name}</a>` : `${releaseEntry.name}`;
+		releaseTimeOutput.innerText = `~ ${list.highResolution ? DateUtils.extractDateAndTime(releaseEntry.timestamp, true) + " UTC" : DateUtils.extractDate(releaseEntry.timestamp)}`;
+	}
+	if (!snapshotEntry) {
+		snapshotOutput.innerText = `[No snapshots existed]`;
+		snapshotTimeOutput.innerText = "";
+	} else {
+		snapshotOutput.innerHTML = snapshotEntry.url ? `<a href=${snapshotEntry.url}>${snapshotEntry.name}</a>` : `${snapshotEntry.name}`;
+		snapshotTimeOutput.innerText = `~ ${list.highResolution ? DateUtils.extractDateAndTime(snapshotEntry.timestamp, true) + " UTC" : DateUtils.extractDate(snapshotEntry.timestamp)}`;
+	}
 }
 
 window.addEventListener("DOMContentLoaded", initialize);

@@ -11,6 +11,12 @@ export class DateUtils {
 		*/
 		return date.toISOString().slice(0, 10);
 	}
+	static extractTime(date: Date): string {
+		/* Date.toISOString will be in the format YYYY-MM-DDThh:mm:ss...
+		                                                     ^^^^^^^^
+		*/
+		return date.toISOString().slice(11, 19);
+	}
 	static extractDateAndTime(datetime: Date, humanReadable: boolean = false): string {
 		/* Date.toISOString will be in the format YYYY-MM-DDThh:mm:ss...
 		                                          ^^^^^^^^^^^^^^^^
