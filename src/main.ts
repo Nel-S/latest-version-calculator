@@ -94,7 +94,7 @@ function recalculate(): void {
 	else {
 		sourcesOutput.innerHTML = "";
 		for (const source of list.sources) {
-			sourcesOutput.innerHTML += `<li>${VersionListMethods.sourceToHTML(source)}</li>`;
+			sourcesOutput.innerHTML += `<li>${VersionListMethods.printLinkable(source)}</li>`;
 		}
 	}
 
@@ -112,14 +112,14 @@ function recalculate(): void {
 		releaseOutput.innerText = `[No releases existed]`;
 		releaseTimeOutput.innerText = "";
 	} else {
-		releaseOutput.innerHTML = releaseEntry.url ? `<a href=${releaseEntry.url}>${releaseEntry.name}</a>` : `${releaseEntry.name}`;
+		releaseOutput.innerHTML = VersionListMethods.printLinkable(releaseEntry);
 		releaseTimeOutput.innerText = `~ ${list.highResolution ? DateUtils.extractDateAndTime(releaseEntry.timestamp, true) + " UTC" : DateUtils.extractDate(releaseEntry.timestamp)}`;
 	}
 	if (!snapshotEntry) {
 		snapshotOutput.innerText = `[No snapshots existed]`;
 		snapshotTimeOutput.innerText = "";
 	} else {
-		snapshotOutput.innerHTML = snapshotEntry.url ? `<a href=${snapshotEntry.url}>${snapshotEntry.name}</a>` : `${snapshotEntry.name}`;
+		snapshotOutput.innerHTML = VersionListMethods.printLinkable(snapshotEntry);
 		snapshotTimeOutput.innerText = `~ ${list.highResolution ? DateUtils.extractDateAndTime(snapshotEntry.timestamp, true) + " UTC" : DateUtils.extractDate(snapshotEntry.timestamp)}`;
 	}
 }

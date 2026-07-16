@@ -37,7 +37,6 @@ export class DatetimeWithMemory {
     }
 
     save(): void {
-        // console.log(this.dateElement.valueAsDate, this.dateElement.value);
         const datetime = DateUtils.getUTCDatetime(this.dateElement);
         if (datetime == null) throw new Error(`Tried to save an invalid datetime (${this.dateElement.value}).`);
         this.lastHours = datetime.getUTCHours();

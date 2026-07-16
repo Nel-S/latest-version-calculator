@@ -3,29 +3,40 @@ import {z} from "zod";
 import {DateUtils} from "../util";
 
 // Recommended URL parameters from Zod's documentation
-const httpUrl = z.url({
+const urlSchema = z.url({
   protocol: /^https?$/,
+  // TODO: We may want to consider defining a whitelist
   hostname: z.regexes.domain,
-  normalize: true
+  normalize: true,
+  error: "Provided URL is invalid or non-HTTP/HTTPS."
 });
 
+// TODO: None of these can be converted to strictObjects without errors complaining about an unrecognized key "default". This is likely due to TypeScript's compiling. Is there any workaround?
+const linkableSchema = z.object({
+	name: z.string("Provided name for a linkable object is not a valid string."),
+	url: urlSchema
+});
+type Linkable = z.infer<typeof linkableSchema>;
+
 const entrySchema = z.object({
-	name: z.string(),
+	...linkableSchema.shape,
 	// Timestamps are originally strings, converted to dates...
-	timestamp: z.string().transform((timestamp) => {
+	timestamp: z.string("Provided timestamp for an entry is not a valid string.").transform((timestamp) => {
 		return new Date(timestamp);
 	// ...and verified to ensure they're valid dates
-	}).refine((timestamp) => !DateUtils.isInvalid(timestamp)),
-	url: httpUrl.optional().default(""),
-	snapshot: z.boolean().optional().default(false)
+	}).refine((timestamp) => !DateUtils.isInvalid(timestamp), "Provided timestamp for an entry is not a valid date or datetime."),
+	// URLs are optional in entries
+	url: urlSchema.optional().default(""),
+	snapshot: z.boolean("Provided snapshot status for an entry is not a valid Boolean.").optional().default(false)
 });
 type Entry = z.infer<typeof entrySchema>;
 
 const sourceSchema = z.object({
-	url: httpUrl,
-	label: z.string().optional().default("")
+	...linkableSchema.shape,
+	// Names are optional in sources (defaulting to their URLs if not provided)
+	name: z.string("Provided name for a source is not a valid string.").optional().default(""),
 });
-type Source = z.infer<typeof sourceSchema>;
+// type Source = z.infer<typeof sourceSchema>;
 
 export const versionListSchema = z.object({
 	entries: z.array(entrySchema).transform((entries) => {
@@ -44,25 +55,14 @@ export const versionListSchema = z.object({
 export type VersionList = z.infer<typeof versionListSchema>;
 
 export class VersionListMethods {
-	// static validate(list: VersionList): void {
-	// 	for (let i = 0; i < list.entries.length; ++i) {
-	// 		if (DateUtils.isInvalid(list.entries[i].timestamp)) throw new Error(`List entry ${list.entries[i].name} has an invalid timestamp.`);
-	// 		if (i < list.entries.length - 1 && list.entries[i].timestamp < list.entries[i + 1].timestamp) throw new Error(`List entries are out of order chronlogically (indices ${list.entries[i].name}-${list.entries[i + 1].name}).`);
-	// 	}
-	// }
 
-	static sourceToHTML(source: Source): string {
-		return `<a href="${source.url}">${source.label ? source.label : source.url}</a>`;
+	static printLinkable<T extends Linkable>(linkable: T): string {
+		if (!linkable.url) return linkable.name;
+		return `<a href="${linkable.url}">${linkable.name ? linkable.name : linkable.url}</a>`;
 	}
 
 	static getLatestVersionsOn(list: VersionList, date: Date) : {releaseEntry: Entry | null, snapshotEntry: Entry | null} {
 		if (!list.entries || !date) return {releaseEntry: null, snapshotEntry: null};
-
-		// let latestIndex: number;
-		// for (latestIndex = 0; latestIndex < list.entries.length && date < list.entries[latestIndex].timestamp; ++latestIndex);
-		// if (latestIndex >= list.entries.length) return {releaseEntry: null, snapshotEntry: null};
-		// console.log([latestIndex]);
-
 
 		// Find the minimum i such that date >= list.entries[i].
 		// = Either date >= list.entries[0], or for i > 1, find i such that list.entries[i - 1] > date >= list.entries[i].
@@ -72,7 +72,6 @@ export class VersionListMethods {
 		while (latestIndex <= earliestIndex) {
 			// Get (approximate) middle index
 			const middleIndex = Math.floor((latestIndex + earliestIndex)/2);
-			// console.log([latestIndex, earliestIndex, middleIndex]);
 			// If not (date >= list.entries[i]), we can discard entries 0-i
 			if (date < list.entries[middleIndex].timestamp) {
 				latestIndex = middleIndex + 1;
@@ -88,7 +87,6 @@ export class VersionListMethods {
 			found = true;
 			break;
 		}
-		// console.log([latestIndex, earliestIndex, found]);
 		if (!found) return {releaseEntry: null, snapshotEntry: null};
 
 		const snapshotEntry = list.entries[latestIndex];

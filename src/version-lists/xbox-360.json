@@ -398,12 +398,12 @@
 	],
 	"sources": [
 		{
-			"url": "https://docs.google.com/spreadsheets/d/1OCxMNQLeZJi4BlKKwHx2OlzktKiLEwFXnmCrSdAFwYQ?gid=1915497658",
-			"label": "Omniarchive Index"
+			"name": "Omniarchive Index",
+			"url": "https://docs.google.com/spreadsheets/d/1OCxMNQLeZJi4BlKKwHx2OlzktKiLEwFXnmCrSdAFwYQ?gid=1915497658"
 		},
 		{
-			"url": "https://minecraft.wiki/w/Template:Navbox_Legacy_Console_Edition_versions?oldid=3614205",
-			"label": "Minecraft Wiki's \"Xbox 360 Edition\" navigation box and articles"
+			"name": "Minecraft Wiki's \"Xbox 360 Edition\" navigation box and articles",
+			"url": "https://minecraft.wiki/w/Template:Navbox_Legacy_Console_Edition_versions?oldid=3614205"
 		}
 	]
 }

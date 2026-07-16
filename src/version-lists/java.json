@@ -5987,16 +5987,16 @@
 	],
 	"sources": [
 		{
-			"url": "https://docs.google.com/spreadsheets/d/1OCxMNQLeZJi4BlKKwHx2OlzktKiLEwFXnmCrSdAFwYQ",
-			"label": "Omniarchive Index"
+			"name": "Omniarchive Index",
+			"url": "https://docs.google.com/spreadsheets/d/1OCxMNQLeZJi4BlKKwHx2OlzktKiLEwFXnmCrSdAFwYQ"
 		},
 		{
-			"url": "https://docs.google.com/spreadsheets/d/1YuDRk6zulCPTE5hRDJC797ORQeB27j_lpOM2Y6onb_g",
-			"label": "JE Time Index"
+			"name": "JE Time Index",
+			"url": "https://docs.google.com/spreadsheets/d/1YuDRk6zulCPTE5hRDJC797ORQeB27j_lpOM2Y6onb_g"
 		},
 		{
-			"url": "https://minecraft.wiki/w/Java_Edition_version_history",
-			"label": "Minecraft Wiki's \"Java Edition version history\" and articles"
+			"name": "Minecraft Wiki's \"Java Edition version history\" and articles",
+			"url": "https://minecraft.wiki/w/Java_Edition_version_history"
 		}
 	]
 }
