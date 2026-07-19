@@ -19,7 +19,7 @@ function initialize(): void {
 
 	// Add event listeners.
 	const platformForm = ElementUtils.getElementOrThrow<HTMLInputElement>("#platform-form");
-	platformForm.addEventListener("input", function(){updateDatetimeResolution(); updateSanpshotOutput(); recalculate();});
+	platformForm.addEventListener("input", function(){updateDatetimeResolution(); updateOutputBoxes(); recalculate();});
 
 	const dateForm = ElementUtils.getElementOrThrow<HTMLInputElement>("#datetime-form");
 	dateForm.addEventListener("input", function(){recalculate();});
@@ -29,7 +29,7 @@ function initialize(): void {
 
 	// Call functions to initialize the page on the current date/time.
 	updateDatetimeResolution();
-	updateSanpshotOutput();
+	updateOutputBoxes();
 	updateRangeOutput();
 	recalculate();
 }
@@ -51,13 +51,23 @@ function updateDatetimeResolution(): void {
 	else datetimeWithMemory.toLowResolution();
 }
 
-function updateSanpshotOutput(): void {
-	const snapshotBox = ElementUtils.getElementOrThrow<HTMLInputElement>("#snapshot-box");
+function updateOutputBoxes(): void {
+	const outputContainer = ElementUtils.getElementOrThrow<HTMLInputElement>("#output-container");
 
-	// Get current list's resolution
-	const versionList = getListFromForm();
-	if (versionList && versionList.metadata.includes("snapshot")) snapshotBox.classList.remove("hidden");
-	else snapshotBox.classList.add("hidden");
+	// Get current list
+	const list = getListFromForm();
+	if (!list) throw new Error("Invalid list.");
+
+	outputContainer.innerHTML = "";
+	for (let i = 0; i < list.metadata.length + 1; ++i) {
+		outputContainer.innerHTML += `
+		<div id="output-box-${i}">
+			<p class="label">Latest ${!i ? list.defaultLabel : list.metadata[i-1]}:</p>
+			<p class="version-name" id="output-name-${i}"></p>
+			<p class="subtext" id="output-time-${i}"></p>
+		</div>
+		`
+	}
 }
 
 function getListFromForm(): VersionList | null {
@@ -75,23 +85,11 @@ function getListFromForm(): VersionList | null {
 }
 
 function recalculate(): void {
-	const releaseOutput = ElementUtils.getElementOrThrow("#release");
-	const releaseTimeOutput = ElementUtils.getElementOrThrow("#release-time");
-	const snapshotOutput = ElementUtils.getElementOrThrow("#snapshot");
-	const snapshotTimeOutput = ElementUtils.getElementOrThrow("#snapshot-time");
 	const sourcesOutput = ElementUtils.getElementOrThrow("#sources-list");
 
 	const list = getListFromForm();
-	if (!list) {
-		releaseOutput.innerText = `[Invalid platform]`;
-		releaseTimeOutput.innerText = "";
-		snapshotOutput.innerText = `[Invalid platform]`;
-		snapshotTimeOutput.innerText = "";
-		return;
-	}
-	// console.log(list.metadata);
 
-	if (!list.sources || !list.sources.length) sourcesOutput.innerHTML = "[None]";
+	if (!list || !list.sources || !list.sources.length) sourcesOutput.innerHTML = "[None]";
 	else {
 		sourcesOutput.innerHTML = "";
 		for (const source of list.sources) {
@@ -100,28 +98,27 @@ function recalculate(): void {
 	}
 
 	const datetime = datetimeWithMemory.read();
-	if (!datetime) {
-		releaseOutput.innerText = `[Invalid date/time]`;
-		releaseTimeOutput.innerText = "";
-		snapshotOutput.innerText = `[Invalid date/time]`;
-		snapshotTimeOutput.innerText = "";
-		return;
-	}
 	
-	const {releaseEntry, snapshotEntry} = VersionListMethods.getLatestVersionsOn(list, datetime);
-	if (!releaseEntry) {
-		releaseOutput.innerText = `[None existed]`;
-		releaseTimeOutput.innerText = "";
-	} else {
-		releaseOutput.innerHTML = VersionListMethods.printLinkable(releaseEntry);
-		releaseTimeOutput.innerText = `~ ${list.highResolution ? DateUtils.extractDateAndTime(releaseEntry.timestamp, true) + " UTC" : DateUtils.extractDate(releaseEntry.timestamp)}`;
-	}
-	if (!snapshotEntry) {
-		snapshotOutput.innerText = `[None existed]`;
-		snapshotTimeOutput.innerText = "";
-	} else {
-		snapshotOutput.innerHTML = VersionListMethods.printLinkable(snapshotEntry);
-		snapshotTimeOutput.innerText = `~ ${list.highResolution ? DateUtils.extractDateAndTime(snapshotEntry.timestamp, true) + " UTC" : DateUtils.extractDate(snapshotEntry.timestamp)}`;
+	const latestEntryIndex = VersionListMethods.getLatestEntryIndexOn(list, datetime);
+	const latestEntriesList = VersionListMethods.getFirstEntriesWithMetadata(list, latestEntryIndex);
+	// console.log(latestEntryIndex, latestEntriesList);
+
+	for (let i = 0; i < latestEntriesList.length; ++i) {
+		const outputBoxName = ElementUtils.getElementOrThrow(`#output-name-${i}`);
+		const outputBoxTime = ElementUtils.getElementOrThrow(`#output-time-${i}`);
+		if (!list) {
+			outputBoxName.innerText = `[Invalid platform]`;
+			outputBoxTime.innerText = "";
+		} else if (!datetime) {
+			outputBoxName.innerText = `[Invalid date/time]`;
+			outputBoxTime.innerText = "";
+		} else if (!latestEntriesList[i]) {
+			outputBoxName.innerText = `[None existed]`;
+			outputBoxTime.innerText = "";
+		} else {
+			outputBoxName.innerHTML = VersionListMethods.printLinkable(latestEntriesList[i]);
+			outputBoxTime.innerText = `~ ${list.highResolution ? DateUtils.extractDateAndTime(latestEntriesList[i].timestamp, true) + " UTC" : DateUtils.extractDate(latestEntriesList[i].timestamp)}`;
+		}
 	}
 }
 

@@ -79,7 +79,7 @@ export const versionListSchema = z.pipe(
 		// Default label to use for entries without metadata
 		defaultLabel: z._default(z.optional(
 			z.string("Provided name for a source is not a valid string.")
-		), "entry"),
+		), "entry without metadata"),
 	}),
 	// Derived attributes
 	z.transform((data) => ({
@@ -107,8 +107,8 @@ export class VersionListMethods {
 		return `<a href="${linkable.url}">${linkable.name ? linkable.name : linkable.url}</a>`;
 	}
 
-	static getLatestVersionsOn(list: VersionList, date: Date) : {releaseEntry: Entry | null, snapshotEntry: Entry | null} {
-		if (!list.entries || !date) return {releaseEntry: null, snapshotEntry: null};
+	static getLatestEntryIndexOn(list: VersionList, date: Date) : number | null {
+		if (!list.entries || !date) return null;
 
 		// Find the minimum i such that date >= list.entries[i].
 		// = Either date >= list.entries[0], or for i > 1, find i such that list.entries[i - 1] > date >= list.entries[i].
@@ -133,11 +133,38 @@ export class VersionListMethods {
 			found = true;
 			break;
 		}
-		if (!found) return {releaseEntry: null, snapshotEntry: null};
+		if (!found) return null;
 
-		const snapshotEntry = list.entries[latestIndex];
-		while (latestIndex < list.entries.length && list.entries[latestIndex].snapshot) ++latestIndex;
-		const releaseEntry = latestIndex >= list.entries.length ? null : list.entries[latestIndex];
-		return {releaseEntry: releaseEntry, snapshotEntry: snapshotEntry};
+		return latestIndex;
+	}
+
+	static getFirstEntriesWithMetadata(list: VersionList, latestIndex: number = 0) : (Entry | null)[] | null {
+		if (!list || !list.metadata) return null;
+
+		// The ultimate array of first entries to be outputted.
+		const firstEntries: (Entry | null)[] = new Array(list.metadata.length + 1).fill(null);
+		// A "metadata -> firstEntries index" mapping, for convienence.
+		const metadataIndices = list.metadata.reduce((accumulator, datum, index) => {
+			accumulator[datum] = index + 1;
+			return accumulator;
+		}, {});
+		console.log(firstEntries, metadataIndices);
+		
+		// For each entry from the latest-index entry onwards, unless all first entries are found:
+		for (let i = latestIndex; i < list.entries.length && firstEntries.some((entry) => entry === null); ++i) {
+			// Get metadata keys in current entry
+			const currentEntryMetadata = Object.keys(list.entries[i]).filter(
+				(key) => list.metadata.includes(key)
+			);
+			// console.log(i, list.entries[i], currentEntryMetadata);
+			// If none exist, the entry is a candidate for the default output box, unless an earlier
+			// one's already been found for it
+			if (!currentEntryMetadata.length) {
+				if (firstEntries[0] === null) firstEntries[0] = list.entries[i];
+			} else {
+				currentEntryMetadata.filter((datum) => firstEntries[metadataIndices[datum]] == null).forEach((datum) => firstEntries[metadataIndices[datum]] = list.entries[i]);
+			}
+		}
+		return firstEntries;
 	}
 };
