@@ -1,5 +1,5 @@
 import {z} from "zod/mini";
-import {DateUtils} from "../util";
+import {DateUtils} from "./util";
 
 // Recommended URL parameters from Zod's documentation
 const urlSchema = z.url({
@@ -16,6 +16,15 @@ const linkableSchema = z.object({
 	url: urlSchema
 });
 type Linkable = z.infer<typeof linkableSchema>;
+
+const sourceSchema = z.object({
+	...linkableSchema.shape,
+	// Names are optional in sources (defaulting to their URLs if not provided)
+	name: z._default(z.optional(
+		z.string("Provided name for a source is not a valid string.")
+	), ""),
+});
+// type Source = z.infer<typeof sourceSchema>;
 
 const entrySchema = z.catchall(
 	// Base schema
@@ -39,26 +48,14 @@ const entrySchema = z.catchall(
 		url: z._default(z.optional(
 			urlSchema
 		), ""),
-		// sourceName: z._default(z.optional(
-		// 	z.string("Provided name for a source is not a valid string.")
-		// ), ""),
-		// sourceUrl: z._default(z.optional(
-		// 	urlSchema
-		// ), ""),
+		// source: z._default(z.optional(
+		// 	sourceSchema
+		// ), null),
 	}),
 	// All other keys are considered metadata, and must be Boolean
 	z.boolean()
 );
 type Entry = z.infer<typeof entrySchema>;
-
-const sourceSchema = z.object({
-	...linkableSchema.shape,
-	// Names are optional in sources (defaulting to their URLs if not provided)
-	name: z._default(z.optional(
-		z.string("Provided name for a source is not a valid string.")
-	), ""),
-});
-// type Source = z.infer<typeof sourceSchema>;
 
 export const versionListSchema = z.pipe(
 	// Attributes pulled from JSON
@@ -107,8 +104,8 @@ export class VersionListMethods {
 		return `<a href="${linkable.url}">${linkable.name ? linkable.name : linkable.url}</a>`;
 	}
 
-	static getLatestEntryIndexOn(list: VersionList, date: Date) : number | null {
-		if (!list.entries || !date) return null;
+	static getLatestEntryIndexOn(list: VersionList, date: Date | null) : number | null {
+		if (!list || !list.entries || !date) return null;
 
 		// Find the minimum i such that date >= list.entries[i].
 		// = Either date >= list.entries[0], or for i > 1, find i such that list.entries[i - 1] > date >= list.entries[i].
@@ -138,17 +135,17 @@ export class VersionListMethods {
 		return latestIndex;
 	}
 
-	static getFirstEntriesWithMetadata(list: VersionList, latestIndex: number = 0) : (Entry | null)[] | null {
-		if (!list || !list.metadata) return null;
+	static getFirstEntriesWithMetadata(list: VersionList, latestIndex: number | null = 0) : (Entry | null)[] | null {
+		if (!list || !list.metadata || latestIndex === null) return null;
 
 		// The ultimate array of first entries to be outputted.
 		const firstEntries: (Entry | null)[] = new Array(list.metadata.length + 1).fill(null);
 		// A "metadata -> firstEntries index" mapping, for convienence.
-		const metadataIndices = list.metadata.reduce((accumulator, datum, index) => {
+		const metadataIndices: {[x: string]: number} = list.metadata.reduce((accumulator: {[x: string]: number}, datum, index) => {
 			accumulator[datum] = index + 1;
 			return accumulator;
 		}, {});
-		console.log(firstEntries, metadataIndices);
+		// console.log(firstEntries, metadataIndices);
 		
 		// For each entry from the latest-index entry onwards, unless all first entries are found:
 		for (let i = latestIndex; i < list.entries.length && firstEntries.some((entry) => entry === null); ++i) {
@@ -162,6 +159,7 @@ export class VersionListMethods {
 			if (!currentEntryMetadata.length) {
 				if (firstEntries[0] === null) firstEntries[0] = list.entries[i];
 			} else {
+				// Otherwise, drop metadata that already has a first entry, and assign all remaining as having the current entry as their 
 				currentEntryMetadata.filter((datum) => firstEntries[metadataIndices[datum]] == null).forEach((datum) => firstEntries[metadataIndices[datum]] = list.entries[i]);
 			}
 		}

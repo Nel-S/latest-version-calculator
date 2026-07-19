@@ -7,8 +7,8 @@
 	<!-- <link rel="icon" type="image/svg+xml" href="/favicon.svg" /> -->
 	<link rel="icon" type="image/png" href="/blank.png" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<title>Minecraft Version Calculator</title>
-	<meta property="og:title" content="Minecraft Version Calculator">
+	<title>Chronology Calculator</title>
+	<meta property="og:title" content="Chronology Calculator">
 	<meta property="og:description" content="Finds the latest Minecraft release and snapshot on a particular date.">
 </head>
 
@@ -23,16 +23,18 @@
 
 	<div class="page">
 		<div>
-			<h1 class="title">Minecraft Version Calculator</h1>
+			<h1 class="title">Chronology Calculator</h1>
 			<p class="subtext">Last updated: July 18th, 2026</p>
 		</div>
 
 		<ul class="input-box">
 			<li class="narrow-rounded-box input-entry">
-				<label class="label" for="platform-form">Platform:</label>
+				<label class="label" for="platform-form">List:</label>
 				<select class="listener" id="platform-form">
-					<option>Java</option>
-					<option>Xbox 360</option>
+					<optgroup label="Minecraft Releases">
+						<option>Java Edition</option>
+						<option>Xbox 360 Edition</option>
+					</optgroup>
 				</select>
 			</li>
 			<li class="narrow-rounded-box input-entry">
@@ -50,7 +52,7 @@
 
 		<div class="sources-box">
 			<p class="smaller-label">Sources used:</p>
-			<ul class="smaller-subtext" id="sources-list"></ul>
+			<ul class="smaller-subtext" id="sources-list">[None]</ul>
 		</div>
 	</div>
 	<div class="about smaller-label">
