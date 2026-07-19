@@ -47,7 +47,7 @@ function updateRangeOutput(): void {
 function updateDatetimeResolution(): void {
 	// Get current list's resolution
 	const versionList = getListFromForm();
-	if (!versionList || versionList.highResolution) datetimeWithMemory.toHighResolution();
+	if (versionList && versionList.highResolution) datetimeWithMemory.toHighResolution();
 	else datetimeWithMemory.toLowResolution();
 }
 
@@ -56,7 +56,7 @@ function updateSanpshotOutput(): void {
 
 	// Get current list's resolution
 	const versionList = getListFromForm();
-	if (!versionList || versionList.hasSnapshots) snapshotBox.classList.remove("hidden");
+	if (versionList && versionList.metadata.includes("snapshot")) snapshotBox.classList.remove("hidden");
 	else snapshotBox.classList.add("hidden");
 }
 
@@ -89,6 +89,7 @@ function recalculate(): void {
 		snapshotTimeOutput.innerText = "";
 		return;
 	}
+	// console.log(list.metadata);
 
 	if (!list.sources || !list.sources.length) sourcesOutput.innerHTML = "[None]";
 	else {
@@ -109,14 +110,14 @@ function recalculate(): void {
 	
 	const {releaseEntry, snapshotEntry} = VersionListMethods.getLatestVersionsOn(list, datetime);
 	if (!releaseEntry) {
-		releaseOutput.innerText = `[No releases existed]`;
+		releaseOutput.innerText = `[None existed]`;
 		releaseTimeOutput.innerText = "";
 	} else {
 		releaseOutput.innerHTML = VersionListMethods.printLinkable(releaseEntry);
 		releaseTimeOutput.innerText = `~ ${list.highResolution ? DateUtils.extractDateAndTime(releaseEntry.timestamp, true) + " UTC" : DateUtils.extractDate(releaseEntry.timestamp)}`;
 	}
 	if (!snapshotEntry) {
-		snapshotOutput.innerText = `[No snapshots existed]`;
+		snapshotOutput.innerText = `[None existed]`;
 		snapshotTimeOutput.innerText = "";
 	} else {
 		snapshotOutput.innerHTML = VersionListMethods.printLinkable(snapshotEntry);

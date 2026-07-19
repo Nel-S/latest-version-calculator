@@ -17,31 +17,38 @@ const linkableSchema = z.object({
 });
 type Linkable = z.infer<typeof linkableSchema>;
 
-const entrySchema = z.object({
-	...linkableSchema.shape,
-	timestamp: z.pipe(
-		// Timestamps are originally strings...
-		z.string("Provided timestamp for an entry is not a valid string."),
-		// ...converted to dates...
-		z.transform(
-			(timestamp) => new Date(timestamp)
-		)
-	// ...and verified to ensure they're valid dates
-	).check(
-		z.refine(
-			(timestamp) => !DateUtils.isInvalid(timestamp),
-			"Provided timestamp for an entry does not convert to a valid date or datetime."
-		)
-	),
-	// URLs are optional in entries
-	url: z._default(z.optional(
-		urlSchema
-	), ""),
-	// Snapshot status defaults to false
-	snapshot: z._default(z.optional(
-		z.boolean("Provided snapshot status for an entry is not a valid Boolean.")
-	), false)
-});
+const entrySchema = z.catchall(
+	// Base schema
+	z.object({
+		...linkableSchema.shape,
+		timestamp: z.pipe(
+			// Timestamps are originally strings...
+			z.string("Provided timestamp for an entry is not a valid string."),
+			// ...converted to dates...
+			z.transform(
+				(timestamp) => new Date(timestamp)
+			)
+		// ...and verified to ensure they're valid dates
+		).check(
+			z.refine(
+				(timestamp) => !DateUtils.isInvalid(timestamp),
+				"Provided timestamp for an entry does not convert to a valid date or datetime."
+			)
+		),
+		// URLs are optional in entries
+		url: z._default(z.optional(
+			urlSchema
+		), ""),
+		// sourceName: z._default(z.optional(
+		// 	z.string("Provided name for a source is not a valid string.")
+		// ), ""),
+		// sourceUrl: z._default(z.optional(
+		// 	urlSchema
+		// ), ""),
+	}),
+	// All other keys are considered metadata, and must be Boolean
+	z.boolean()
+);
 type Entry = z.infer<typeof entrySchema>;
 
 const sourceSchema = z.object({
@@ -69,6 +76,10 @@ export const versionListSchema = z.pipe(
 		sources: z._default(z.optional(
 			z.array(sourceSchema)
 		), []),
+		// Default label to use for entries without metadata
+		defaultLabel: z._default(z.optional(
+			z.string("Provided name for a source is not a valid string.")
+		), "entry"),
 	}),
 	// Derived attributes
 	z.transform((data) => ({
@@ -77,10 +88,14 @@ export const versionListSchema = z.pipe(
 		highResolution: data.entries.some(
 			(entry) => DateUtils.extractTime(entry.timestamp) != "00:00:00"
 		),
-		// Whether version list contains snapshots (or only releases)
-		hasSnapshots: data.entries.some(
-			(entry) => entry.snapshot
-		)
+		// List of metadata keys contained in version list's entries
+		metadata: [...new Set(data.entries.flatMap(
+			// For each entry, get keys in the entry that aren't in the entry schema
+			(entry) => Object.keys(entry).filter(
+				(key) => !Object.keys(entrySchema.shape).includes(key)
+			)
+			// Then pass through a Set to remove duplicates
+		))]
 	}))
 );
 export type VersionList = z.infer<typeof versionListSchema>;
