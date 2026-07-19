@@ -16,9 +16,12 @@ async function initialize(): Promise<void> {
 	// 	element => (element.addEventListener("input", function(){recalculate();}))
 	// );
 
+	// Reset list cache.
+	await caches.delete("chronological-calculator-list-cache");
+
 	// Add event listeners.
-	const platformForm = ElementUtils.getElementOrThrow<HTMLInputElement>("#platform-form");
-	platformForm.addEventListener("input", async function(){await updateDatetimeResolution(); await updateOutputBoxes(); await recalculate();});
+	const listForm = ElementUtils.getElementOrThrow<HTMLInputElement>("#list-form");
+	listForm.addEventListener("input", async function(){await updateOutputBoxes(); await updateDatetimeResolution(); await recalculate();});
 
 	const dateForm = ElementUtils.getElementOrThrow<HTMLInputElement>("#datetime-form");
 	dateForm.addEventListener("input", async function(){await recalculate();});
@@ -27,8 +30,8 @@ async function initialize(): Promise<void> {
 	utcOffsetForm.addEventListener("input", async function(){updateRangeOutput(); await recalculate();});
 
 	// Call functions to initialize the page on the current date/time.
-	await updateDatetimeResolution();
 	await updateOutputBoxes();
+	await updateDatetimeResolution();
 	updateRangeOutput();
 	await recalculate();
 }
@@ -70,11 +73,11 @@ async function updateOutputBoxes(): Promise<void> {
 }
 
 async function getListFromForm(): Promise<VersionList | null> {
-	const platformForm = ElementUtils.getElementOrNull<HTMLInputElement>("#platform-form");
-	if (!platformForm) return null;
+	const listForm = ElementUtils.getElementOrNull<HTMLInputElement>("#list-form");
+	if (!listForm) return null;
 	
 	let url = "";
-	switch (platformForm.value) {
+	switch (listForm.value) {
 		case "Java Edition":
 			// TODO: Find way to replace with permalink
 			url = "https://raw.githubusercontent.com/Nel-S/latest-version-calculator/refs/heads/development/preset-lists/java.json";
@@ -86,13 +89,19 @@ async function getListFromForm(): Promise<VersionList | null> {
 			return null;
 	}
 
-	try {
-		const fetchResponse = await fetch(url);
-		if (!fetchResponse.ok) return null;
-		return versionListSchema.parse(await fetchResponse.json());
-	} catch {
-		return null;
+	// Check cache for URL
+	const listCache = await caches.open("chronological-calculator-list-cache");
+	let fetchResponse = await listCache.match(url);
+	// If not present, fetch it, and cache it if it's not an error
+	if (!fetchResponse) {
+		fetchResponse = await fetch(url);
+		if (fetchResponse.ok) await listCache.put(url, fetchResponse.clone());
 	}
+	// If the equest did error, return null
+	if (!fetchResponse.ok) return null;
+
+	// Otherwise parse list and return
+	return versionListSchema.parse(await fetchResponse.json());
 }
 
 async function recalculate(): Promise<void> {
@@ -119,7 +128,7 @@ async function recalculate(): Promise<void> {
 		}
 
 		if (!latestEntriesList) {
-			outputBoxName.innerText = `[Calculation failed]`;
+			outputBoxName.innerText = `[None existed]`;
 			outputBoxTime.innerText = "";
 			continue;
 		}
