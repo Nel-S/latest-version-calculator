@@ -36,6 +36,32 @@ export class DateUtils {
 }
 
 export class ElementUtils {
+	static getIfNullOrNull<T>(value: T | null, getter: (...args: any[]) => T | null): T | null {
+		if (value !== null) return value;
+		value = getter();
+		return value;
+	}
+
+	static getIfNullOrThrow<T>(value: T | null, getter: (...args: any[]) => T | null): T {
+		if (value !== null) return value;
+		value = getter();
+		if (value === null) throw new Error(`Getter ${getter} could not update variable with a non-null value.`);
+		return value;
+	}
+
+	static async asyncGetIfNullOrNull<T>(value: T | null, getter: (...args: any[]) => Promise<T | null>): Promise<T | null> {
+		if (value !== null) return value;
+		value = await getter();
+		return value;
+	}
+
+	static async asyncGetIfNullOrThrow<T>(value: T | null, getter: (...args: any[]) => T | null): Promise<T> {
+		if (value !== null) return value;
+		value = await getter();
+		if (value === null) throw new Error(`Getter ${getter} could not update variable with a non-null value.`);
+		return value;
+	}
+
 	static getElementOrNull<T extends HTMLElement>(selectors: string): T | null {
 		return document.querySelector<T>(selectors);
 	}

@@ -35,7 +35,14 @@
 						<option>Java Edition</option>
 						<option>Xbox 360 Edition</option>
 					</optgroup>
+					<optgroup label="Custom">
+						<option>From URL</option>
+						<option>From File Upload</option>
+					</optgroup>
 				</select>
+				<input type="url" id="list-form-url" placeholder="URL..." pattern="^https?://.*" class="hidden">
+				<!-- TODO: Figure out how to center -->
+				<input type="file" id="list-form-file-upload" accept=".json,.JSON" class="hidden">
 			</li>
 			<li class="narrow-rounded-box input-entry">
 				<label class="label" for="datetime-form">Date:</label>
@@ -48,7 +55,11 @@
 			</li>
 		</ul>
 
-		<div class="rounded-box output-box" id="output-container">[Retrieving list...]</div>
+		<div class="rounded-box output-box" id="output-container">
+			<div class="list-name">
+				[Retrieving list...]
+			</div>
+		</div>
 
 		<div class="sources-box">
 			<p class="smaller-label">Sources used:</p>

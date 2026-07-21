@@ -32,7 +32,10 @@ const entrySchema = z.catchall(
 		...linkableSchema.shape,
 		timestamp: z.pipe(
 			// Timestamps are originally strings...
-			z.string("Provided timestamp for an entry is not a valid string."),
+			z.union([
+				z.iso.datetime("Provided timestamp for an entry is not a valid datetime."),
+				z.iso.date("Provided timestamp for an entry is not a valid date."),
+			]),
 			// ...converted to dates...
 			z.transform(
 				(timestamp) => new Date(timestamp)
@@ -145,7 +148,6 @@ export class VersionListMethods {
 			accumulator[datum] = index + 1;
 			return accumulator;
 		}, {});
-		// console.log(firstEntries, metadataIndices);
 		
 		// For each entry from the latest-index entry onwards, unless all first entries are found:
 		for (let i = latestIndex; i < list.entries.length && firstEntries.some((entry) => entry === null); ++i) {
@@ -153,7 +155,6 @@ export class VersionListMethods {
 			const currentEntryMetadata = Object.keys(list.entries[i]).filter(
 				(key) => list.metadata.includes(key)
 			);
-			// console.log(i, list.entries[i], currentEntryMetadata);
 			// If none exist, the entry is a candidate for the default output box, unless an earlier
 			// one's already been found for it
 			if (!currentEntryMetadata.length) {

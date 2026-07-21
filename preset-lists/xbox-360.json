@@ -3,22 +3,26 @@
 		{
 			"name": "Build 1.66.0016.0",
 			"timestamp": "2011-11-14",
-			"url": "https://minecraft.wiki/w/Xbox_360_Edition_Build_0016"
+			"url": "https://minecraft.wiki/w/Xbox_360_Edition_Build_0016",
+			"private version": true
 		},
 		{
 			"name": "Build 1.66.0033.0",
 			"timestamp": "2012-01-27",
-			"url": "https://minecraft.wiki/w/Xbox_360_Edition_Build_0033"
+			"url": "https://minecraft.wiki/w/Xbox_360_Edition_Build_0033",
+			"private version": true
 		},
 		{
 			"name": "Build 1.66.0035.0",
 			"timestamp": "2012-02-01",
-			"url": "https://minecraft.wiki/w/Xbox_360_Edition_Build_0035"
+			"url": "https://minecraft.wiki/w/Xbox_360_Edition_Build_0035",
+			"private version": true
 		},
 		{
 			"name": "Build 0.66.0054.0",
 			"timestamp": "2012-03-22",
-			"url": "https://minecraft.wiki/w/Xbox_360_Edition_Build_0054"
+			"url": "https://minecraft.wiki/w/Xbox_360_Edition_Build_0054",
+			"private version": true
 		},
 		{
 			"name": "Title Update 0",
@@ -406,5 +410,5 @@
 			"url": "https://minecraft.wiki/w/Template:Navbox_Legacy_Console_Edition_versions?oldid=3614205"
 		}
 	],
-	"defaultLabel": "release"
+	"defaultLabel": "public release"
 }
