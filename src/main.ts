@@ -1,5 +1,5 @@
 import {DatetimeWithMemory} from "./datememory.js";
-import {DateUtils, ElementUtils} from "./util.js"
+import {DateUtils, ElementUtils, URLUtils} from "./util.js"
 import {type VersionList, VersionListMethods, versionListSchema} from "./lists.js";
 
 const datetimeWithMemory = new DatetimeWithMemory(
@@ -40,24 +40,35 @@ async function respondToNewList(): Promise<void> {
 	const urlUnhidden = updateURLVisibility();
 	const fileUploadUnhidden = updateFileUploadVisibility();
 	if (urlUnhidden || fileUploadUnhidden) {
-		const outputContainer = ElementUtils.getElementOrThrow<HTMLInputElement>("#output-container");
-		outputContainer.innerHTML = `
-			<div class="list-name">
-				[Waiting${urlUnhidden ? " for URL" : fileUploadUnhidden ? " for file upload" : ""}...]
-			</div>
-		`;
+		blankOutputs(`[Waiting${urlUnhidden ? " for URL" : fileUploadUnhidden ? " for file upload" : ""}...]`);
 		return;
 	}
 	// Otherwise, perform a recalculation.
 	await updatePageForList();
 }
 
+function blankOutputs(message: string = "") {
+	const outputContainer = ElementUtils.getElementOrThrow<HTMLInputElement>("#output-container");
+	outputContainer.innerHTML = `
+		<div class="list-name">
+			${message}
+		</div>
+	`;
+
+	const listLastUpdatedBox = ElementUtils.getElementOrThrow<HTMLInputElement>("#list-last-updated");
+	listLastUpdatedBox.innerText = "";
+}
+
 async function updatePageForList(): Promise<void> {
-	const list = await getListFromForm();
-	if (!list) throw new Error("Invalid list.");
+	const list = await getListFromForm(true);
+	if (!list) {
+		blankOutputs(`[Invalid list]`);
+		return;
+	}
 
 	updateOutputBoxes(list);
 	updateDatetimeResolution(list);
+	updateListLastUpdateField(list);
 	await recalculate(list);
 }
 
@@ -122,7 +133,19 @@ function updateOutputBoxes(list: VersionList): boolean {
 	return true;
 }
 
-async function getListFromForm(): Promise<VersionList | null> {
+function updateListLastUpdateField(list: VersionList): boolean {
+	if (!list) return false;
+	const listLastUpdatedBox = ElementUtils.getElementOrThrow<HTMLInputElement>("#list-last-updated");
+
+	if (list.lastModified && DateUtils.isValid(list.lastModified)) {
+		listLastUpdatedBox.innerText = `List was last updated on ${DateUtils.extractDateAndTime(list.lastModified, true)} UTC.`;
+	} else {
+		listLastUpdatedBox.innerText = `List was last updated on an unknown date.`;
+	}
+	return true;
+}
+
+async function getListFromForm(getLastModifed: boolean = false): Promise<VersionList | null> {
 	const listForm = ElementUtils.getElementOrThrow<HTMLInputElement>("#list-form");
 	const listFileUploadForm = ElementUtils.getElementOrThrow<HTMLInputElement>("#list-form-file-upload");
 	
@@ -141,39 +164,36 @@ async function getListFromForm(): Promise<VersionList | null> {
 			url = listURLForm.value;
 			break;
 		case "From File Upload":
-			if (!listFileUploadForm.files) return null;
-			url = `/uploaded-files/${listFileUploadForm.files[0].name}-${listFileUploadForm.files[0].size}`;
+			// Handled in URLUtils.queryUploadedFile
 			break;
 		default:
 			return null;
 	}
 
-	// Check cache for URL
-	const listCache = await caches.open("chronological-calculator-list-cache");
-	let fetchResponse = await listCache.match(url);
-	// If not present, fetch it, and cache it if it's not an error
-	if (!fetchResponse) {
-		if (url.startsWith("/uploaded-files/")) {
-			if (!listFileUploadForm.files) return null;
-			fetchResponse = new Response(await listFileUploadForm.files[0].text());
-		} else try {
-			fetchResponse = await fetch(url);
-		} catch {
-			return null;
-		}
-		if (fetchResponse.ok) await listCache.put(url, fetchResponse.clone());
-	}
-	// If the equest did error, return null
-	if (!fetchResponse.ok) return null;
+	const fetchResponse = (listForm.value == "From File Upload") ?
+		await URLUtils.queryUploadedFile(listFileUploadForm.files, "chronological-calculator-list-cache") :
+		await URLUtils.queryURL(url, "chronological-calculator-list-cache");
+	if (!fetchResponse || !fetchResponse.ok) return null;
 
 	// Otherwise parse list and return
-	return versionListSchema.parse(await fetchResponse.json());
+	const responseJSON: JSON = await fetchResponse.json();
+	if (getLastModifed) {
+		if (fetchResponse.headers.has("Last-Modified")) {
+			Object.assign(responseJSON, {lastModified: fetchResponse.headers.get("Last-Modified")});
+		} else try {
+			const urlObject = new URL(url);
+			Object.assign(responseJSON, {lastModified: await URLUtils.getGithubLastCommit(urlObject)});
+		} catch {
+			;
+		}
+	}
+	return versionListSchema.parse(responseJSON);
 }
 
 async function recalculate(list: VersionList | null = null): Promise<void> {
 	const sourcesOutput = ElementUtils.getElementOrThrow("#sources-list");
 
-	list = await ElementUtils.asyncGetIfNullOrNull<VersionList>(list, getListFromForm);
+	list = await ElementUtils.asyncGetIfNullOrNull<VersionList>(list, getListFromForm, false);
 	if (!list || !list.sources || !list.sources.length) sourcesOutput.innerHTML = "[None]";
 	else {
 		sourcesOutput.innerHTML = "";
@@ -183,12 +203,7 @@ async function recalculate(list: VersionList | null = null): Promise<void> {
 	}
 
 	if (!list) {
-		const outputContainer = ElementUtils.getElementOrThrow("#output-container");
-		outputContainer.innerHTML = `
-			<div class="list-name">
-				[Invalid list]
-			</div>
-		`;
+		blankOutputs(`[Invalid list]`);
 		return;
 	}
 	const datetime = datetimeWithMemory.read();

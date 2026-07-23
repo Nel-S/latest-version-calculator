@@ -10,6 +10,17 @@ const urlSchema = z.url({
   error: "Provided URL is invalid or non-HTTP/HTTPS."
 });
 
+const checkedDatetimeSchema = 
+	// Timestamps are originally strings, coerced to dates...
+	z.coerce.date<string>("Provided timestamp is not a string or not a valid datetime.")
+// ...and verified to ensure they're valid dates
+.check(
+	z.refine(
+		(timestamp) => DateUtils.isValid(timestamp),
+		"Provided timestamp does not convert to a valid date or datetime."
+	)
+)
+
 // TODO: None of these can be converted to strictObjects without errors complaining about an unrecognized key "default". This is likely due to TypeScript's compiling. Is there any workaround?
 const linkableSchema = z.object({
 	name: z.string("Provided name for a linkable object is not a valid string."),
@@ -30,23 +41,7 @@ const entrySchema = z.catchall(
 	// Base schema
 	z.object({
 		...linkableSchema.shape,
-		timestamp: z.pipe(
-			// Timestamps are originally strings...
-			z.union([
-				z.iso.datetime("Provided timestamp for an entry is not a valid datetime."),
-				z.iso.date("Provided timestamp for an entry is not a valid date."),
-			]),
-			// ...converted to dates...
-			z.transform(
-				(timestamp) => new Date(timestamp)
-			)
-		// ...and verified to ensure they're valid dates
-		).check(
-			z.refine(
-				(timestamp) => !DateUtils.isInvalid(timestamp),
-				"Provided timestamp for an entry does not convert to a valid date or datetime."
-			)
-		),
+		timestamp: checkedDatetimeSchema,
 		// URLs are optional in entries
 		url: z._default(z.optional(
 			urlSchema
@@ -80,6 +75,9 @@ export const versionListSchema = z.pipe(
 		defaultLabel: z._default(z.optional(
 			z.string("Provided name for a source is not a valid string.")
 		), "entry without metadata"),
+		lastModified: z._default(z.optional(z.nullable(
+			checkedDatetimeSchema,
+		)), null)
 	}),
 	// Derived attributes
 	z.transform((data) => ({
