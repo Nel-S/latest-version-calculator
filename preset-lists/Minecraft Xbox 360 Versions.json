@@ -400,15 +400,5 @@
 			"url": "https://minecraft.wiki/w/Xbox_360_Edition_TU75"
 		}
 	],
-	"sources": [
-		{
-			"name": "Omniarchive Index",
-			"url": "https://docs.google.com/spreadsheets/d/1OCxMNQLeZJi4BlKKwHx2OlzktKiLEwFXnmCrSdAFwYQ?gid=1915497658"
-		},
-		{
-			"name": "Minecraft Wiki's \"Xbox 360 Edition\" navigation box and articles",
-			"url": "https://minecraft.wiki/w/Template:Navbox_Legacy_Console_Edition_versions?oldid=3614205"
-		}
-	],
 	"defaultLabel": "public release"
 }

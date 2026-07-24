@@ -153,10 +153,10 @@ async function getListFromForm(getLastModifed: boolean = false): Promise<Version
 	switch (listForm.value) {
 		case "Java Edition":
 			// TODO: Find way to replace with permalink
-			url = "https://raw.githubusercontent.com/Nel-S/latest-version-calculator/refs/heads/development/preset-lists/java.json";
+			url = "https://raw.githubusercontent.com/Nel-S/latest-version-calculator/refs/heads/development/preset-lists/Minecraft%20Java%20Edition%20Versions.json";
 			break;
 		case "Xbox 360 Edition":
-			url = "https://raw.githubusercontent.com/Nel-S/latest-version-calculator/refs/heads/development/preset-lists/xbox-360.json";
+			url = "https://raw.githubusercontent.com/Nel-S/latest-version-calculator/refs/heads/development/preset-lists/Minecraft%20Xbox%20360%20Versions.json";
 			break;
 		case "From URL":
 			const listURLForm = ElementUtils.getElementOrThrow<HTMLInputElement>("#list-form-url");
@@ -191,17 +191,7 @@ async function getListFromForm(getLastModifed: boolean = false): Promise<Version
 }
 
 async function recalculate(list: VersionList | null = null): Promise<void> {
-	const sourcesOutput = ElementUtils.getElementOrThrow("#sources-list");
-
 	list = await ElementUtils.asyncGetIfNullOrNull<VersionList>(list, getListFromForm, false);
-	if (!list || !list.sources || !list.sources.length) sourcesOutput.innerHTML = "[None]";
-	else {
-		sourcesOutput.innerHTML = "";
-		for (const source of list.sources) {
-			sourcesOutput.innerHTML += `<li>${VersionListMethods.printLinkable(source)}</li>`;
-		}
-	}
-
 	if (!list) {
 		blankOutputs(`[Invalid list]`);
 		return;
@@ -234,6 +224,12 @@ async function recalculate(list: VersionList | null = null): Promise<void> {
 		}
 
 		outputBoxName.innerHTML = VersionListMethods.printLinkable(currentLatestEntry);
+		for (let j = 0; j < currentLatestEntry.sources.length; ++j) {
+			outputBoxName.innerHTML += `<sup>${VersionListMethods.printLinkable({
+				name: `[${j + 1}]`,
+				url: currentLatestEntry.sources[j]
+			})}</sup>`;
+		}
 		outputBoxTime.innerText = `~ ${list.highResolution ? DateUtils.extractDateAndTime(currentLatestEntry.timestamp, true) + " UTC" : DateUtils.extractDate(currentLatestEntry.timestamp)}`;
 	}
 }

@@ -28,15 +28,6 @@ const linkableSchema = z.object({
 });
 type Linkable = z.infer<typeof linkableSchema>;
 
-const sourceSchema = z.object({
-	...linkableSchema.shape,
-	// Names are optional in sources (defaulting to their URLs if not provided)
-	name: z._default(z.optional(
-		z.string("Provided name for a source is not a valid string.")
-	), ""),
-});
-// type Source = z.infer<typeof sourceSchema>;
-
 const entrySchema = z.catchall(
 	// Base schema
 	z.object({
@@ -46,9 +37,10 @@ const entrySchema = z.catchall(
 		url: z._default(z.optional(
 			urlSchema
 		), ""),
-		// source: z._default(z.optional(
-		// 	sourceSchema
-		// ), null),
+		// Sources are optional and default to an empty list if unprovided
+		sources: z._default(z.optional(
+			z.array(urlSchema)
+		), []),
 	}),
 	// All other keys are considered metadata, and must be Boolean
 	z.boolean()
@@ -67,10 +59,6 @@ export const versionListSchema = z.pipe(
 				)
 			)
 		),
-		// Sources default to an empty list if unprovided
-		sources: z._default(z.optional(
-			z.array(sourceSchema)
-		), []),
 		// Default label to use for entries without metadata
 		defaultLabel: z._default(z.optional(
 			z.string("Provided name for a source is not a valid string.")
