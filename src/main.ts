@@ -138,9 +138,9 @@ function updateListLastUpdateField(list: VersionList): boolean {
 	const listLastUpdatedBox = ElementUtils.getElementOrThrow<HTMLInputElement>("#list-last-updated");
 
 	if (list.lastModified && DateUtils.isValid(list.lastModified)) {
-		listLastUpdatedBox.innerText = `List was last updated on ${DateUtils.extractDateAndTime(list.lastModified, true)} UTC.`;
+		listLastUpdatedBox.innerText = `This list was last updated on ${DateUtils.extractDateAndTime(list.lastModified, true)} UTC.`;
 	} else {
-		listLastUpdatedBox.innerText = `List was last updated on an unknown date.`;
+		listLastUpdatedBox.innerText = `This list was last updated on an unknown date.`;
 	}
 	return true;
 }
